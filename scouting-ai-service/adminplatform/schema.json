@@ -1,0 +1,4 @@
+{
+  "required": ["Question", "Answer"],
+  "optional": ["Category", "Source", "Intent_ID", "Tags", "Variant", "Difficulty", "Version", "Last_Updated", "Active"]
+}

@@ -1,0 +1,81 @@
+\chapter{Etude du frontend Flutter}
+
+\section{Vue generale}
+
+Le frontend est un projet Flutter (SDK Dart \texttt{^3.7.2}) organise en couches:
+\begin{itemize}
+  \item \texttt{components}
+  \item \texttt{controllers}
+  \item \texttt{services}
+  \item \texttt{models}
+  \item \texttt{screens}
+  \item \texttt{theme}, \texttt{utils}, \texttt{l10n}
+\end{itemize}
+
+Cette separation facilite la maintenance et l'evolutivite.
+
+\section{Deux points d'entree applicatifs}
+
+\subsection*{Application mobile}
+Le fichier \texttt{lib/main.dart} demarre l'application principale utilisateur, configure theme, locale, routes et ecran home selon l'etat d'authentification.
+
+\subsection*{Plateforme admin web}
+Le fichier \texttt{lib/main\_admin\_web.dart} demarre une variante web admin avec:
+\begin{itemize}[leftmargin=*]
+  \item verification du role admin;
+  \item ecran dedie \texttt{AdminWebPlatformScreen};
+  \item message explicite pour les comptes non-admin.
+\end{itemize}
+
+\section{Navigation, roles et securisation UI}
+
+Le frontend utilise des routes nommees et un composant \texttt{RoleGuard} pour limiter l'acces aux ecrans sensibles (data management, outils trainer, admin web).
+
+\section{Theming et coherence visuelle}
+
+Le theme global est centralise via \texttt{AppTheme.light()} et \texttt{AppTheme.dark()}, puis applique dans les deux entrees. Cette approche garantit une coherence visuelle transversale mobile/web.
+
+\section{Internationalisation}
+
+La classe \texttt{AppStrings} declare trois locales supportees:
+\begin{itemize}[leftmargin=*]
+  \item anglais (en)
+  \item francais (fr)
+  \item arabe (ar)
+\end{itemize}
+
+Le mecanisme de localisation est branche via \texttt{localizationsDelegates} dans \texttt{MaterialApp}.
+
+\section{Configuration reseau frontend}
+
+Le fichier \texttt{Constants.dart} centralise:
+\begin{itemize}[leftmargin=*]
+  \item base REST backend: \texttt{http://<host>:8091/football-academy/api};
+  \item base WebSocket: \texttt{ws://<host>:8091/football-academy/ws};
+  \item API chatbot locale: \texttt{http://localhost:8000/api/chat} (ou \texttt{10.0.2.2} sur emulateur Android).
+\end{itemize}
+
+\section{Ameliorations majeures du module chat}
+
+D'apres \texttt{CHAT\_SYSTEM\_IMPROVEMENTS.md}, les evolutions clefs sont:
+\begin{itemize}[leftmargin=*]
+  \item passage a un \textbf{ChatController singleton};
+  \item bootstrap unique puis reutilisation d'etat;
+  \item pre-subscription de toutes les conversations;
+  \item mise a jour temps reel conversation/thread sans rechargement;
+  \item amelioration UX (skeleton loaders, badges, formatting temporel).
+\end{itemize}
+
+\section{Ameliorations de la page contacts}
+
+Le document \texttt{CONTACT\_PAGE\_IMPROVEMENTS.md} introduit:
+\begin{itemize}[leftmargin=*]
+  \item chargement role-based des contacts par defaut;
+  \item recherche scopee pour trainer;
+  \item organisation UI par groupes et messages directs;
+  \item chargement parallele conversations + contacts pour latence reduite.
+\end{itemize}
+
+\section{Notes de compatibilite}
+
+\texttt{README\_PLATFORM\_LIMITS.txt} precise des limites natives pour le scroll vocal system-wide. Les besoins de service en arriere-plan et accessibilite Android depassent la seule couche Flutter \texttt{/lib}.

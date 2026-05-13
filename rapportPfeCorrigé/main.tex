@@ -1,0 +1,77 @@
+\documentclass[12pt, oneside, a4paper]{enetcom-pfe-report}
+
+\graphicspath{{images/}}
+
+%% TODO: Remove this function when done %%
+%\newcommand\todoin[2][]{\todo[inline, caption={2do}, #1]{
+%\begin{minipage}{\textwidth-4pt}#2\end{minipage}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Include useful commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\reportTitle}{Taha Mortadha PFE}
+\newcommand{\reportSubject}{PFE}
+\newcommand{\reportAuthor} {%
+  Taha Omrani Mortadha  \textsc{Boufaid}%
+}
+\renewcommand{\tablename}{Tableau}
+\hypersetup{
+  pdftitle={\reportTitle~-~\reportSubject},%
+  pdfauthor={\reportAuthor},%
+  pdfsubject={\reportSubject},%
+  pdfkeywords={report} {internship} {pfe} {Iset}
+}
+\dominitoc
+
+\begin{document}
+
+    \doublespacing{}% Double spacing between lines
+    \pagenumbering{roman}% i ii iii iv ...
+    
+    \input{chapitre/01-Dedicace}
+    \input{chapitre/02-Remerciement}
+   
+    \addtocontents{toc}{\protect\thispagestyle{MyStyle}}
+    \renewcommand*\contentsname{TABLE DES MATIÈRES}
+    \begin{spacing}{1}
+    \tableofcontents
+    \end{spacing}
+
+    \addtocontents{lof}{\protect\thispagestyle{MyStyle}}
+    \renewcommand{\listfigurename}{LISTE DES FIGURES}
+    \begin{spacing}{1}
+    \listoffigures
+    \end{spacing}
+  
+    
+    \addtocontents{toc}{\protect\thispagestyle{MyStyle}}
+    \renewcommand*\contentsname{LISTE DES TABLEAUX}
+    \begin{spacing}{1}
+    \listoftables
+    \end{spacing}
+
+    
+    \cleardoublepage
+    \pagenumbering{arabic}% 1 2 3 4 5
+    \setcounter{page}{1}
+    
+    \doublespacing{}% Double spacing between lines
+    %\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
+    
+    % Réglage du compteur de chapitre pour le chapitre 11
+    % \setcounter{chapter}{11}
+        
+    \input{chapitre/03-IntroductionGeneral} 
+    \input{chapitre/04-cadre general}
+    \input{chapitre/05-Analyse et spécification des besoins}
+    \input{chapitre/06-Testing and Deployment}
+    \input{chapitre/07-GestionUtilisateur}
+    \input{chapitre/08-GestionUniversité,facilité et Examen}
+    \input{chapitre/09-GestionTransport,Events et Stage}
+    \input{chapitre/10-GestionPublicationsetNotifications}
+    \input{chapitre/11-GestionMap,Chat et Dashbord} % Chapitre 11
+    \input{chapitre/12-conclusiongenerale}
+    \input{chapitre/13-Bibliographie}
+    \input{chapitre/14-Netographie}
+
+\end{document}

@@ -1,0 +1,80 @@
+\chapter{Integration et deploiement}
+
+\section{Integration inter-projets}
+
+\subsection*{Frontend <-> Backend}
+Le frontend Flutter consomme l'API backend sur:
+\begin{itemize}[leftmargin=*]
+  \item REST: \texttt{http://<host>:8091/football-academy/api}
+  \item WebSocket STOMP: \texttt{ws://<host>:8091/football-academy/ws}
+\end{itemize}
+
+\subsection*{Frontend <-> Chatbot}
+Le module chatbot Flutter appelle le service Django sur \texttt{http://localhost:8000/api/chat} (ou \texttt{10.0.2.2} sur emulateur Android).
+
+\section{Variables de configuration}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.35\textwidth} p{0.55\textwidth}}
+\toprule
+\textbf{Variable} & \textbf{Usage} \\
+\midrule
+\texttt{PORT} & Port backend Spring Boot (defaut 8091). \\
+\texttt{DB\_URL, DB\_USER, DB\_PASS} & Connexion base de donnees backend. \\
+\texttt{CHATBOT\_API\_KEY} & Protection optionnelle endpoint chatbot. \\
+\texttt{QA\_CSV} & Dataset Q/R du chatbot. \\
+\texttt{MIN\_SIM, FUZZY\_MIN} & Parametrage du moteur de similarite chatbot. \\
+\bottomrule
+\end{tabular}
+\caption{Variables principales de deploiement}
+\end{table}
+
+\section{Strategie de deploiement recommandee}
+
+\subsection*{Backend}
+Deploiement conteneurise via Docker, pilote par pipeline CI/CD (test/build/docker push).
+
+\subsection*{Frontend mobile}
+Build et distribution independants pour mobile (Android/iOS).
+
+\subsection*{Frontend admin web}
+Build web separe et hebergement sur une plateforme statique ou serveur web. Cette separation evite de lier les contraintes web admin au package mobile.
+
+\subsection*{Chatbot}
+Deploiement en service Python separable (VM/container) selon la charge. En local, execution possible sur la meme machine que le frontend.
+
+\section{Procedure de lancement local}
+
+\subsection*{Backend Spring Boot}
+\begin{lstlisting}[style=codeblock,language=bash]
+cd football-academy
+mvn clean package
+mvn spring-boot:run
+\end{lstlisting}
+
+\subsection*{Frontend Flutter}
+\begin{lstlisting}[style=codeblock,language=bash]
+cd moez_project
+flutter pub get
+flutter run
+\end{lstlisting}
+
+\subsection*{Chatbot Django}
+\begin{lstlisting}[style=codeblock,language=bash]
+cd chatbot/chatbot
+python -m venv env_py10
+# activation env selon systeme
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 127.0.0.1:8000
+\end{lstlisting}
+
+\section{Points de vigilance en production}
+
+\begin{itemize}[leftmargin=*]
+  \item externaliser les secrets (JWT, DB, API keys) hors du code source;
+  \item verifier les CORS et restrictions de domaines autorises;
+  \item monitorer les performances chat temps reel et chatbot;
+  \item mettre en place des sauvegardes DB et retention logs.
+\end{itemize}

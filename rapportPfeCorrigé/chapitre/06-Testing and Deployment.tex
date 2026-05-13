@@ -1,0 +1,59 @@
+\chapter{ Chapitre 3 : Testing and Deployment}
+\begin{spacing}{1.2}
+\minitoc
+\thispagestyle{MyStyle}
+\end{spacing}
+\newpage
+\begin{sloppypar} 
+
+\section{Introduction}
+\vspace{-4mm}
+This chapter covers the comprehensive testing strategies and deployment processes implemented for the university student mobile app and admin web interface. Ensuring quality and reliability is crucial for user adoption and system stability. We employed a multi-layered testing approach and automated deployment pipelines to achieve high-quality deliverables.
+
+\section{Testing Strategy}
+\vspace{-4mm}
+\subsection{Unit Testing}
+Unit tests were written for individual components to validate the smallest testable parts of the code. For the backend Spring Boot application, we used JUnit 5 with Mockito for mocking dependencies. This ensured that each method and class functioned correctly in isolation.
+
+\begin{itemize}
+\item Backend: JUnit 5, Mockito
+\item Frontend: Jest for React Native components
+\item Coverage target: 80\% minimum
+\end{itemize}
+
+\subsection{Integration Testing}
+Integration tests verified that different modules and services worked together seamlessly. We tested API endpoints, database interactions, and inter-service communications.
+
+\begin{itemize}
+\item API testing with Postman collections
+\item Database integration tests with H2 in-memory database
+\item End-to-end testing with Cypress for web interface
+\end{itemize}
+
+\subsection{User Acceptance Testing}
+UAT was conducted with a group of university students and administrators to validate the functionality against real-world requirements. Feedback was collected and incorporated into final refinements.
+
+\section{Deployment Process}
+\vspace{-4mm}
+\subsection{Continuous Integration/Continuous Deployment}
+We implemented CI/CD using GitLab CI to automate the build, test, and deployment processes.
+
+\begin{itemize}
+\item Automated builds on every push
+\item Automated testing in staging environment
+\item Manual approval for production deployment
+\end{itemize}
+
+\subsection{Containerization}
+The application was containerized using Docker for consistent deployment across environments.
+
+\begin{itemize}
+\item Multi-stage Dockerfiles for optimized images
+\item Docker Compose for local development
+\item Kubernetes for production orchestration
+\end{itemize}
+
+\subsection{Monitoring and Maintenance}
+Post-deployment monitoring was set up using application logs and performance metrics to ensure ongoing reliability.
+
+\end{sloppypar}

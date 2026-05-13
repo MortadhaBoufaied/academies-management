@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Academies – Super Admin{% endblock %}
+{% block page_title %}Manage Academies{% endblock %}
+{% block content %}
+
+<!-- Create Academy Form -->
+<div class="card" style="margin-bottom:28px;">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    <h2>Create New Academy</h2>
+  </div>
+  <form method="post" action="/super/academies" class="form-grid">
+    <div class="form-group"><label>Academy Name</label><input name="name" required placeholder="e.g. Star Academy Sfax"></div>
+    <div class="form-group"><label>Slug <span class="text-muted">(URL key, unique)</span></label><input name="slug" required placeholder="star-sfax" pattern="[a-z0-9\-]+"></div>
+    <div class="form-group"><label>Chatbot URL <span class="text-muted">(optional)</span></label><input name="chatbot_url" placeholder="http://localhost:8020"></div>
+    <div class="form-group">
+      <label>Accent Color</label>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input type="color" name="accent_color" value="#7c6aef" style="width:48px;height:38px;padding:2px;border-radius:8px;border:1px solid var(--glass-border);background:transparent;cursor:pointer;">
+        <span class="text-muted" style="font-size:.85rem;">Used for academy badge &amp; avatar</span>
+      </div>
+    </div>
+    <hr style="grid-column:1/-1;border-color:var(--glass-border);margin:4px 0;">
+    <div class="form-group"><label>Sub-Admin Full Name</label><input name="admin_name" required placeholder="e.g. Ahmed Ben Ali"></div>
+    <div class="form-group"><label>Sub-Admin Email</label><input type="email" name="admin_email" required placeholder="ahmed@academy.tn"></div>
+    <div style="grid-column:1/-1;">
+      <button type="submit" class="btn btn-primary">Create Academy &amp; Sub-Admin</button>
+      <p class="text-muted" style="margin-top:8px;font-size:.83rem;">A temporary password will be shown after creation. The sub-admin must change it on first login.</p>
+    </div>
+  </form>
+</div>
+
+<!-- Academies List -->
+<div class="card">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <h2>All Academies <span class="badge badge-optional" style="margin-left:8px;">{{ academies|length }}</span></h2>
+  </div>
+  {% if academies %}
+  <div class="academy-grid">
+    {% for a in academies %}
+    <a href="/super/academies/{{ a.slug }}" class="academy-card-link">
+      <div class="academy-card" style="border-top:3px solid {{ a.accent_color }};">
+        <div class="academy-card-top">
+          {% if a.logo_path %}
+            <img src="{{ a.logo_path }}" class="academy-logo-md" alt="logo">
+          {% else %}
+            <div class="academy-avatar academy-avatar-lg" style="background:{{ a.accent_color }};">{{ a.name[0]|upper }}</div>
+          {% endif %}
+          <span class="badge {{ 'badge-success' if a.is_active else 'badge-inactive' }}">{{ 'Active' if a.is_active else 'Inactive' }}</span>
+        </div>
+        <h3 class="academy-card-name">{{ a.name }}</h3>
+        <code class="academy-slug">{{ a.slug }}</code>
+        <p class="text-muted" style="font-size:.82rem;margin-top:6px;">
+          {{ a.admins|length }} admin{{ 's' if a.admins|length != 1 else '' }}
+        </p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted" style="padding:20px;">No academies created yet. Use the form above to add one.</p>
+  {% endif %}
+</div>
+{% endblock %}

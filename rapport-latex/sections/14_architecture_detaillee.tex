@@ -1,0 +1,230 @@
+\chapter{Architecture detaillee et diagrammes}
+
+\section{Architecture globale du systeme}
+
+\subsection*{Vue d'ensemble des composants}
+
+L'ecosysteme \textit{Sport Academy Pro} est compose de plusieurs services interconnectes:
+
+\begin{lstlisting}[style=codeblock]
++-------------------------+       REST API       +--------------------------+
+|                         | <------------------> |                          |
+|  Flutter Mobile App     |                      |  Spring Boot Backend     |
+|  (Joueurs, Parents)     |                      |  (football-academy)      |
+|                         |                      |                          |
++-------------------------+                      +--------------------------+
+         |                                                |
+         | WebSocket (Chat)                               | REST API
+         v                                                v
++-------------------------+                      +--------------------------+
+|                         |                      |                          |
+|  Flutter Admin Web      |                      |  MySQL Database          |
+|  (Administrateurs)      |                      |                          |
+|                         |                      +--------------------------+
++-------------------------+                                |
+         |                                                |
+         | REST API                                        | JPA/Hibernate
+         v                                                v
++-------------------------+                      +--------------------------+
+|                         |                      |                          |
+|  Django Chatbot Service  |                      |  JMS Broker (Artemis)    |
+|  (Assistance Q\&A)      |                      |  (Messaging async)       |
+|                         |                      |                          |
++-------------------------+                      +--------------------------+
+         |
+         | REST API
+         v
++-------------------------+
+|                         |
+|  FastAPI Scouting AI    |
+|  (ML: Potentiel,        |
+|   Evolution, Churn)     |
+|                         |
++-------------------------+
+\end{lstlisting}
+
+\section{Architecture microservices}
+
+\subsection*{Separation des responsabilites}
+
+Chaque service a une responsabilite clairement definie:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.25\textwidth} p{0.35\textwidth} p{0.3\textwidth}}
+\toprule
+\textbf{Service} & \textbf{Responsabilite} & \textbf{Technologie} \\
+\midrule
+football-academy & API metier, authentification, gestion & Spring Boot \\
+moez\_project & Interface mobile et web admin & Flutter \\
+chatbot & Assistance conversationnelle & Django/ML \\
+scouting-ai & Analyse ML et scouting & FastAPI/ML \\
+MySQL & Persistence des donnees & MySQL 8.0 \\
+Artemis & Messaging asynchrone & JMS \\
+\bottomrule
+\end{tabular}
+\caption{Services et responsabilites}
+\end{table}
+
+\section{Flux de donnees principaux}
+
+\subsection*{Flux d'authentification}
+
+\begin{enumerate}[leftmargin=*]
+  \item L'utilisateur saisit ses identifiants dans l'app Flutter
+  \item Flutter envoie \texttt{POST /api/auth/login} au backend Spring Boot
+  \item Spring Boot valide les credentials et genere un JWT
+  \item Le JWT est retourne et stocke dans Flutter
+  \item Les requetes subsequentes incluent le JWT dans le header \texttt{Authorization: Bearer <token>}
+  \item Le \texttt{JwtAuthenticationFilter} valide le token a chaque requete
+\end{enumerate}
+
+\subsection*{Flux de messagerie temps reel}
+
+\begin{enumerate}[leftmargin=*]
+  \item L'utilisateur ouvre l'ecran de chat dans Flutter
+  \item Flutter se connecte au WebSocket endpoint \texttt{/ws}
+  \item Flutter s'abonne aux topics STOMP (\texttt{/topic/messages/\{conversationId\}})
+  \item Lorsqu'un message est envoye:
+    \begin{itemize}[leftmargin=*]
+      \item Flutter envoie \texttt{POST /api/chat/messages}
+      \item Le backend sauvegarde le message en base
+      \item Le backend publie le message sur le topic JMS
+      \item Le WebSocket broker diffuse le message aux abonnes
+    \end{itemize}
+  \item Les clients abonnes recoivent le message en temps reel
+\end{enumerate}
+
+\subsection*{Flux de synchronisation IA}
+
+\begin{enumerate}[leftmargin=*]
+  \item Le service scouting-ai appelle \texttt{POST /api/v1/data/sync/football-academy}
+  \item Il recupere les donnees joueurs depuis \texttt{/football-academy/api/players}
+  \item Il recupere les donnees paiements depuis \texttt{/football-academy/api/payments}
+  \item Les donnees sont stockees dans la base du service IA
+  \item Les modeles ML sont entraines ou mis a jour
+  \item Les scores de potentiel, evolution et churn sont calcules
+\end{enumerate}
+
+\section{Architecture de securite}
+
+\subsection*{Couches de securite}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Authentification}: JWT avec expiration et refresh
+  \item \textbf{Autorisation}: RBAC (Role-Based Access Control)
+  \item \textbf{Validation}: Validation des entrees et sanitization
+  \item \textbf{Encryption}: Mots de passe haches avec bcrypt
+  \item \textbf{HTTPS}: Communication securisee (en production)
+\end{itemize}
+
+\subsection*{Roles et permissions}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.2\textwidth} p{0.7\textwidth}}
+\toprule
+\textbf{Role} & \textbf{Permissions} \\
+\midrule
+ADMIN & Acces total, gestion utilisateurs, configuration globale \\
+TRAINER & Gestion equipes, planification, saisie statistiques \\
+PARENT & Consultation enfants, paiements, planning \\
+PLAYER & Consultation profil, planning, communication \\
+SCOUTER & Recherche joueurs, comparaison, shortlists (lecture seule) \\
+\bottomrule
+\end{tabular}
+\caption{Roles et permissions}
+\end{table}
+
+\section{Architecture de base de donnees}
+
+\subsection*{Schema principal}
+
+La base de donnees MySQL est organisee autour des entites principales:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Users}: Utilisateurs du systeme
+  \item \textbf{Players}: Profils des joueurs
+  \item \textbf{Teams}: Equipes et divisions
+  \item \textbf{Activities}: Entrainements, matchs, evenements
+  \item \textbf{Payments}: Transactions et cotisations
+  \item \textbf{Conversations}: Discussions et messages
+  \item \textbf{Notifications}: Alertes et rappels
+\end{itemize}
+
+\subsection*{Relations cles}
+
+\begin{lstlisting}[style=codeblock]
+User (1) ----< (N) Player
+Team (1) ----< (N) Player
+Activity (1) ----< (N) Attendance
+Player (1) ----< (N) Payment
+User (1) ----< (N) Conversation
+Conversation (1) ----< (N) Message
+\end{lstlisting}
+
+\section{Architecture de deploiement}
+
+\subsection*{Docker Compose}
+
+L'ensemble des services est deploye via Docker Compose:
+
+\begin{lstlisting}[style=codeblock]
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: football_academy
+    ports:
+      - "3306:3306"
+
+  football-academy:
+    build: ./football-academy
+    ports:
+      - "8091:8091"
+    depends_on:
+      - mysql
+      - artemis
+
+  chatbot:
+    build: ./chatbot
+    ports:
+      - "8000:8000"
+
+  scouting-ai:
+    build: ./scouting-ai-service
+    ports:
+      - "8010:8010"
+    depends_on:
+      - football-academy
+
+  artemis:
+    image: apache/activemq-artemis
+    ports:
+      - "61616:61616"
+\end{lstlisting}
+
+\section{Monitoring et observabilite}
+
+\subsection*{Logs et traces}
+
+\begin{itemize}[leftmargin=*]
+  \item Logs applicatifs structure (JSON)
+  \item Traces des requetes API
+  \item Monitoring des performances
+  \item Alertes sur erreurs et anomalies
+\end{itemize}
+
+\subsection*{Health checks}
+
+Chaque service expose un endpoint de health check:
+
+\begin{itemize}[leftmargin=*]
+  \texttt{GET /health} pour football-academy
+  \item \texttt{GET /api/health} pour scouting-ai
+  \item Verification de la connexion base de donnees
+  \item Verification des dependances externes
+\end{itemize}

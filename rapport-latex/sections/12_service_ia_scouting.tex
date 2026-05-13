@@ -1,0 +1,216 @@
+\chapter{Service IA et Scouting}
+
+\section{Vue d'ensemble}
+
+Le service de scouting IA est un microservice FastAPI dedie aux fonctionnalites d'intelligence artificielle et de scouting sportif. Il complete l'ecosysteme en fournissant:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{ML01}: Score de potentiel sportif avec explications des facteurs
+  \item \textbf{ML02}: Analyse de l'evolution sportive (progression, stabilite, regression)
+  \item \textbf{ML03}: Prediction du churn (risque d'abandon, raisons probables, actions recommandees)
+  \item \textbf{SC01}: Recherche avancee, comparaison des joueurs, generation de shortlists
+\end{itemize}
+
+\section{Stack technique}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.35\textwidth} p{0.55\textwidth}}
+\toprule
+\textbf{Composant} & \textbf{Technologie} \\
+\midrule
+Framework API & FastAPI \\
+Langage & Python 3.9+ \\
+Base de donnees & SQLAlchemy + SQLite/PostgreSQL \\
+ML/Data Science & scikit-learn, pandas, numpy \\
+API Documentation & Swagger UI (auto-generee) \\
+Tests & pytest + pytest-asyncio \\
+\bottomrule
+\end{tabular}
+\caption{Synthese stack service IA}
+\end{table}
+
+\section{Architecture du service}
+
+\subsection*{Structure modulaire}
+
+\begin{lstlisting}[style=codeblock]
+app/
+|-- main.py              # Point d'entree FastAPI
+|-- api/
+|   |-- routes/
+|   |   |-- health.py    # Health check
+|   |   |-- data.py      # Data ingestion endpoints
+|   |   |-- ml.py        # ML scoring endpoints
+|   |   |-- scouter.py  # Scouting features
+|-- services/
+|   |-- ml_service.py    # Logique ML
+|   |-- feature_engineering.py
+|   |-- sync_service.py # Sync avec football-academy
+|-- db/
+|   |-- models.py        # Modeles SQLAlchemy
+|   |-- session.py      # Gestion session DB
+|-- tests/
+|   |-- test_scoring.py  # Tests unitaires ML
+\end{lstlisting}
+
+\section{Fonctionnalites ML}
+
+\subsection*{ML01 - Score de potentiel sportif}
+
+L'endpoint \texttt{GET /api/v1/ml/potential/\{player\_external\_id\}} calcule un score de potentiel base sur:
+
+\begin{itemize}[leftmargin=*]
+  \item Statistiques de performance (buts, passes decisives, notes moyennes)
+  \item Assiduite aux entrainements
+  \item Historique des blessures
+  \item Age et position
+\end{itemize}
+
+\textbf{Reponse API:}
+\begin{lstlisting}[style=codeblock]
+{
+  "player_external_id": 101,
+  "potential_score": 78.5,
+  "factors": {
+    "performance": 82.0,
+    "attendance": 75.0,
+    "health": 80.0,
+    "age_factor": 76.0
+  },
+  "explanation": "Fort potentiel offensif avec bonne assiduite"
+}
+\end{lstlisting}
+
+\subsection*{ML02 - Analyse de l'evolution}
+
+L'endpoint \texttt{GET /api/v1/ml/evolution/\{player\_external\_id\}} analyse la tendance sur une fenetre temporelle configurable:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Progression}: Amelioration significative des performances
+  \item \textbf{Stabilite}: Performances constantes
+  \item \textbf{Regression}: Baisse des performances
+\end{itemize}
+
+\subsection*{ML03 - Prediction du churn}
+
+L'endpoint \texttt{GET /api/v1/ml/churn/\{player\_external\_id\}} estime le risque d'abandon:
+
+\begin{lstlisting}[style=codeblock]
+{
+  "player_external_id": 101,
+  "churn_probability": 0.35,
+  "risk_level": "medium",
+  "likely_reasons": [
+    "payment_delays",
+    "decreasing_attendance"
+  ],
+  "recommended_actions": [
+    "contact_parent",
+    "offer_payment_plan",
+    "schedule_meeting"
+  ]
+}
+\end{lstlisting}
+
+\section{Fonctionnalites Scouting}
+
+\subsection*{SC01 - Recherche avancee}
+
+L'endpoint \texttt{GET /api/v1/scouter/players/search} permet une recherche multi-criteres:
+
+\begin{itemize}[leftmargin=*]
+  \item Filtrage par position, age, division
+  \item Seuils sur potentiel minimum et churn maximum
+  \item Tri par differentes metriques
+\end{itemize}
+
+\textbf{Exemple de requete:}
+\begin{lstlisting}[style=codeblock]
+GET /api/v1/scouter/players/search?
+    position=MID&
+    min_potential=65&
+    max_churn=0.4&
+    limit=20
+\end{lstlisting}
+
+\subsection*{Generation de shortlists}
+
+L'endpoint \texttt{POST /api/v1/scouter/shortlists/generate} cree des listes de joueurs selon differentes strategies:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{balanced}: Equilibre entre potentiel et faible risque
+  \item \textbf{potential}: Priorite au potentiel pur
+  \item \textbf{safe}: Priorite aux joueurs a faible risque
+\end{itemize}
+
+\section{Integration avec football-academy}
+
+\subsection*{Synchronisation des donnees}
+
+L'endpoint \texttt{POST /api/v1/data/sync/football-academy} synchronise automatiquement:
+
+\begin{itemize}[leftmargin=*]
+  \item Donnees joueurs depuis \texttt{/football-academy/api/players}
+  \item Donnees paiements depuis \texttt{/football-academy/api/payments}
+\end{itemize}
+
+\subsection*{Configuration de l'integration}
+
+\begin{lstlisting}[style=codeblock]
+# .env
+FOOTBALL_BACKEND_BASE_URL=http://localhost:8091
+SYNC_INTERVAL_HOURS=24
+\end{lstlisting}
+
+\section{Tests et qualite}
+
+\subsection*{Tests unitaires}
+
+Les tests couvrent:
+\begin{itemize}[leftmargin=*]
+  \item Calcul des scores de potentiel
+  \item Analyse d'evolution
+  \item Prediction de churn
+  \item Recherche et filtrage
+\end{itemize}
+
+\subsection*{Validation des modeles}
+
+Les modeles ML sont valides via:
+\begin{itemize}[leftmargin=*]
+  \item Cross-validation
+  \item Mesures de performance (Accuracy, F1, MAE, RMSE)
+  \item Analyse des features importantes
+\end{itemize}
+
+\section{Deploiement}
+
+\subsection*{Dockerisation}
+
+Le service est conteneurise avec Docker:
+
+\begin{lstlisting}[style=codeblock]
+FROM python:3.9-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010"]
+\end{lstlisting}
+
+\subsection*{Integration Docker Compose}
+
+Le service s'integre dans l'ecosysteme via docker-compose.yml:
+
+\begin{lstlisting}[style=codeblock]
+services:
+  scouting-ai:
+    build: ./scouting-ai-service
+    ports:
+      - "8010:8010"
+    environment:
+      - FOOTBALL_BACKEND_BASE_URL=http://football-academy:8091
+    depends_on:
+      - football-academy
+\end{lstlisting}

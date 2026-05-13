@@ -1,0 +1,159 @@
+\babel@toc {french}{}\relax 
+\thispagestyle {MyStyle}
+\thispagestyle {MyStyle}
+\contentsline {chapter}{INTRODUCTION GÉNÉRALE}{1}{chapter*.6}%
+\contentsline {chapter}{\numberline {1}Chapitre 1: Etude préalable}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Introduction }{4}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Organisme d’accueil }{4}{section.1.2}%
+\contentsline {subsection}{\numberline {1.2.1}Présentation de Infobjectif}{4}{subsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.1.1}Introduction}{4}{subsubsection.1.2.1.1}%
+\contentsline {subsubsection}{\numberline {1.2.1.2}Coordonnées de l'entreprise}{5}{subsubsection.1.2.1.2}%
+\contentsline {subsection}{\numberline {1.2.2}Organigramme de la societé}{5}{subsection.1.2.2}%
+\contentsline {section}{\numberline {1.3}Présentation du projet}{5}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}Contexte du projet}{5}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}Etude de l’existant }{6}{subsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.3.3}Critique de l’existant }{6}{subsection.1.3.3}%
+\contentsline {section}{\numberline {1.4}Solution proposée}{6}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Méthodologie du travail }{7}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}UP (Processus Unifié) }{8}{subsection.1.5.1}%
+\contentsline {subsection}{\numberline {1.5.2}SCRUM : Agile}{8}{subsection.1.5.2}%
+\contentsline {subsection}{\numberline {1.5.3}Comparaison des méthodes }{9}{subsection.1.5.3}%
+\contentsline {subsection}{\numberline {1.5.4}Choix de la méthodologie adoptée }{9}{subsection.1.5.4}%
+\contentsline {subsection}{\numberline {1.5.5}Glossaire SCRUM }{10}{subsection.1.5.5}%
+\contentsline {subsection}{\numberline {1.5.6}Justification du choix de SCRUM }{11}{subsection.1.5.6}%
+\contentsline {section}{\numberline {1.6}Conclusion }{11}{section.1.6}%
+\contentsline {chapter}{\numberline {2} Chapitre 2: Architecture \centering logicielle et outils de travail}{12}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Introduction}{13}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Capture des besoins}{13}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}Définition des acteurs }{13}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}Besoins fonctionnels }{13}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}Besoins non-fonctionnels}{14}{subsection.2.2.3}%
+\contentsline {section}{\numberline {2.3}Backlog de produit }{15}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Découpage en sprint }{17}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Architecture du système }{20}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Environnement de travail}{20}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Environnement logiciel}{21}{section.2.7}%
+\contentsline {subsection}{\numberline {2.7.1}Lucidchart}{21}{subsection.2.7.1}%
+\contentsline {subsection}{\numberline {2.7.2}Figma}{21}{subsection.2.7.2}%
+\contentsline {section}{\numberline {2.8}Environnement de développement}{21}{section.2.8}%
+\contentsline {subsection}{\numberline {2.8.1}Visual Studio Code}{21}{subsection.2.8.1}%
+\contentsline {subsection}{\numberline {2.8.2}IntelliJ IDEA}{22}{subsection.2.8.2}%
+\contentsline {subsection}{\numberline {2.8.3}Android Studio}{22}{subsection.2.8.3}%
+\contentsline {subsection}{\numberline {2.8.4}Postman}{23}{subsection.2.8.4}%
+\contentsline {section}{\numberline {2.9}Conclusion }{23}{section.2.9}%
+\contentsline {chapter}{\numberline {3} Chapitre 3 : Testing and Deployment}{24}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Introduction}{25}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Testing Strategy}{25}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Unit Testing}{25}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Integration Testing}{25}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}User Acceptance Testing}{26}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Deployment Process}{26}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Continuous Integration/Continuous Deployment}{26}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Containerization}{26}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}Monitoring and Maintenance}{26}{subsection.3.3.3}%
+\contentsline {chapter}{\numberline {4} Chapitre 4 : Sprint 1 \centering "Gestion des Utilisateurs" }{27}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Introduction}{28}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Backlog du sprint}{28}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Analyse et spécification des besoins}{28}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Diagramme de cas d'utilisation detaillé}{28}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Description textuelle du cas d’utilisation « S'inscrire »}{29}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Description textuelle du cas d’utilisation « S’authentifier »}{30}{subsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.4.3}Description textuelle du cas d’utilisation « Modifier le profil »}{30}{subsection.4.4.3}%
+\contentsline {subsection}{\numberline {4.4.4}Description textuelle du cas d’utilisation « Modifier mot de passe »}{30}{subsection.4.4.4}%
+\contentsline {section}{\numberline {4.5}Diagramme de séquence }{31}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}Diagramme de séquence « S’inscrire »}{31}{subsection.4.5.1}%
+\contentsline {subsection}{\numberline {4.5.2}Diagramme de séquence « S’authentifier »}{32}{subsection.4.5.2}%
+\contentsline {subsection}{\numberline {4.5.3}Diagramme de séquence « Changer mot de passe »}{33}{subsection.4.5.3}%
+\contentsline {section}{\numberline {4.6}Diagramme de classes}{33}{section.4.6}%
+\contentsline {section}{\numberline {4.7}Réalisation }{34}{section.4.7}%
+\contentsline {subsection}{\numberline {4.7.1}Authentification}{34}{subsection.4.7.1}%
+\contentsline {subsection}{\numberline {4.7.2}Authentification web}{35}{subsection.4.7.2}%
+\contentsline {subsection}{\numberline {4.7.3}Inscription}{36}{subsection.4.7.3}%
+\contentsline {subsection}{\numberline {4.7.4}Modifier profile}{37}{subsection.4.7.4}%
+\contentsline {subsection}{\numberline {4.7.5}Changer mot de passe}{37}{subsection.4.7.5}%
+\contentsline {subsection}{\numberline {4.7.6}Réinitialiser mot de passe}{38}{subsection.4.7.6}%
+\contentsline {subsection}{\numberline {4.7.7}Page Profile}{39}{subsection.4.7.7}%
+\contentsline {section}{\numberline {4.8}Conclusion }{40}{section.4.8}%
+\contentsline {chapter}{\numberline {5} Chapitre 5 : Sprint 2 " Gestion \centering des Universités Endroits et des Examens"}{41}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Introduction }{42}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Backlog du sprint}{42}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Analyse et spécification des besoins}{42}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Diagramme de cas d’utilisation detaillé}{42}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}Description textuelle du cas d’utilisation « Ajouter un endroit »}{43}{subsection.5.3.2}%
+\contentsline {subsection}{\numberline {5.3.3}Description textuelle du cas d’utilisation « Modifier un endroit »}{44}{subsection.5.3.3}%
+\contentsline {subsection}{\numberline {5.3.4}Description textuelle du cas d’utilisation « Supprimer un endroit »}{44}{subsection.5.3.4}%
+\contentsline {section}{\numberline {5.4}Diagramme de séquence }{44}{section.5.4}%
+\contentsline {subsection}{\numberline {5.4.1}Diagramme de séquence « Ajouter un Endroit »}{45}{subsection.5.4.1}%
+\contentsline {subsection}{\numberline {5.4.2}Diagramme de séquence « Modifier un Endroit »}{45}{subsection.5.4.2}%
+\contentsline {subsection}{\numberline {5.4.3}Diagramme de séquence « Supprimer un Endroit »}{46}{subsection.5.4.3}%
+\contentsline {section}{\numberline {5.5}Diagramme de classes }{47}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Réalisation}{48}{section.5.6}%
+\contentsline {subsection}{\numberline {5.6.1}Consultation de la liste des universités}{48}{subsection.5.6.1}%
+\contentsline {subsection}{\numberline {5.6.2}Ajout d'une univesité}{48}{subsection.5.6.2}%
+\contentsline {subsection}{\numberline {5.6.3}Modifier un endroit }{50}{subsection.5.6.3}%
+\contentsline {subsection}{\numberline {5.6.4}Détails d'un examen}{50}{subsection.5.6.4}%
+\contentsline {subsection}{\numberline {5.6.5}Détails Endroit dans l'application Mobile}{51}{subsection.5.6.5}%
+\contentsline {subsection}{\numberline {5.6.6}Détails Université dans l'application Mobile}{51}{subsection.5.6.6}%
+\contentsline {subsection}{\numberline {5.6.7}Partie examen dans l'application mobile}{52}{subsection.5.6.7}%
+\contentsline {section}{\numberline {5.7}Conclusion }{52}{section.5.7}%
+\contentsline {chapter}{\numberline {6} Chapitre 6 :Sprint 3 " Gestion des \centering Transports ,Evénement et des Stages"}{53}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Introduction }{54}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Backlog du sprint}{54}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Analyse et spécification des besoins}{54}{section.6.3}%
+\contentsline {subsection}{\numberline {6.3.1}Diagramme de classes }{54}{subsection.6.3.1}%
+\contentsline {subsection}{\numberline {6.3.2}Description textuelle du cas d’utilisation «Ajouter un stage»}{56}{subsection.6.3.2}%
+\contentsline {subsection}{\numberline {6.3.3}Description textuelle du cas d’utilisation «Modifier un stage»}{56}{subsection.6.3.3}%
+\contentsline {subsection}{\numberline {6.3.4}Description textuelle du cas d’utilisation «Supprimer un stage»}{57}{subsection.6.3.4}%
+\contentsline {section}{\numberline {6.4}Diagramme de séquence }{57}{section.6.4}%
+\contentsline {subsection}{\numberline {6.4.1}Diagramme de séquence «Ajouter un Stage»}{57}{subsection.6.4.1}%
+\contentsline {subsection}{\numberline {6.4.2}Diagramme de séquence «Modifier un Stage»}{58}{subsection.6.4.2}%
+\contentsline {subsection}{\numberline {6.4.3}Diagramme de séquence «Supprimer un Stage»}{58}{subsection.6.4.3}%
+\contentsline {section}{\numberline {6.5}Diagramme de classes }{59}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Réalisation }{60}{section.6.6}%
+\contentsline {subsection}{\numberline {6.6.1}Ajout d'un évenement}{60}{subsection.6.6.1}%
+\contentsline {subsection}{\numberline {6.6.2}Modification d'un stage}{61}{subsection.6.6.2}%
+\contentsline {section}{\numberline {6.7}Effacer un moyen du transport }{61}{section.6.7}%
+\contentsline {subsection}{\numberline {6.7.1}Evenement partie Mobile }{62}{subsection.6.7.1}%
+\contentsline {subsection}{\numberline {6.7.2}Stage partie mobile }{62}{subsection.6.7.2}%
+\contentsline {subsection}{\numberline {6.7.3}Les moyens des transports partie mobile }{63}{subsection.6.7.3}%
+\contentsline {section}{\numberline {6.8}Conclusion }{63}{section.6.8}%
+\contentsline {chapter}{\numberline {7} Chapitre 7 : Sprint 4 "Gestion \centering des Publications et des Notifications"}{64}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Introduction }{65}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Backlog du sprint}{65}{section.7.2}%
+\contentsline {section}{\numberline {7.3}L'Algorithme des publications}{65}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Les Notifications }{66}{section.7.4}%
+\contentsline {section}{\numberline {7.5}Analyse et spécification des besoins}{66}{section.7.5}%
+\contentsline {subsection}{\numberline {7.5.1}Diagramme de cas d’utilisation détaillé}{66}{subsection.7.5.1}%
+\contentsline {subsection}{\numberline {7.5.2}Description textuelle du cas d’utilisation « Créer une publication »}{67}{subsection.7.5.2}%
+\contentsline {subsection}{\numberline {7.5.3}Description textuelle du cas d’utilisation « Créer une notification personnalisée »}{68}{subsection.7.5.3}%
+\contentsline {section}{\numberline {7.6}Diagramme de séquence }{68}{section.7.6}%
+\contentsline {subsection}{\numberline {7.6.1}Diagramme de séquence «Créer une publication»}{68}{subsection.7.6.1}%
+\contentsline {subsection}{\numberline {7.6.2}Diagramme de séquence «Créer une notification»}{69}{subsection.7.6.2}%
+\contentsline {section}{\numberline {7.7}Diagramme de classes detaillé }{70}{section.7.7}%
+\contentsline {section}{\numberline {7.8}Réalisation }{70}{section.7.8}%
+\contentsline {subsection}{\numberline {7.8.1}Page créer une publication}{70}{subsection.7.8.1}%
+\contentsline {section}{\numberline {7.9}Interface commenter et réagir sur une publication}{71}{section.7.9}%
+\contentsline {subsection}{\numberline {7.9.1}Interface Acceuil mobile }{72}{subsection.7.9.1}%
+\contentsline {subsection}{\numberline {7.9.2}Interface Notification mobile }{72}{subsection.7.9.2}%
+\contentsline {subsection}{\numberline {7.9.3}Interface Notification Personalisée }{73}{subsection.7.9.3}%
+\contentsline {subsection}{\numberline {7.9.4}Conclusion }{73}{subsection.7.9.4}%
+\contentsline {chapter}{\numberline {8} Chapitre 8 : Sprint 5 "Recherche des données sur un Map, \centering Gestion des tableaux de bord et des Messageries"}{74}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Introduction}{75}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Backlog du sprint}{75}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Analyse et spécification des besoins}{75}{section.8.3}%
+\contentsline {subsection}{\numberline {8.3.1}Diagramme de cas d’utilisation détaillé}{75}{subsection.8.3.1}%
+\contentsline {subsection}{\numberline {8.3.2}Description textuelle du cas d’utilisation «Envoyer un message à l'administrateur»}{76}{subsection.8.3.2}%
+\contentsline {subsection}{\numberline {8.3.3}Description textuelle du cas d’utilisation «Envoyer un message à un Étudiant»}{76}{subsection.8.3.3}%
+\contentsline {section}{\numberline {8.4}Diagramme de séquence }{77}{section.8.4}%
+\contentsline {subsection}{\numberline {8.4.1}Diagramme de séquence <<Contacter un étudiant>> }{77}{subsection.8.4.1}%
+\contentsline {subsection}{\numberline {8.4.2}Diagramme de séquence <<Contacter admin>> }{78}{subsection.8.4.2}%
+\contentsline {section}{\numberline {8.5}Diagramme de classes }{78}{section.8.5}%
+\contentsline {section}{\numberline {8.6}Réalisation }{79}{section.8.6}%
+\contentsline {section}{\numberline {8.7}Contact administrateur}{79}{section.8.7}%
+\contentsline {section}{\numberline {8.8}Contact Utilisateur }{80}{section.8.8}%
+\contentsline {section}{\numberline {8.9}Le Dashbord d'administrateur }{81}{section.8.9}%
+\contentsline {section}{\numberline {8.10}La carte map }{82}{section.8.10}%
+\contentsline {section}{\numberline {8.11}Conclusion }{82}{section.8.11}%
+\contentsline {chapter}{CONCLUSION GÉNÉRALE}{83}{chapter*.92}%
+\contentsline {chapter}{Bibliographie}{84}{chapter*.93}%
+\contentsline {chapter}{Netographie}{86}{chapter*.94}%

@@ -1,0 +1,39 @@
+\babel@toc {french}{}\relax 
+\addvspace {10\p@ }
+\contentsline {xchapter}{Chapitre 1: Etude préalable}{3}{chapter.1}%
+\contentsline {table}{\numberline {1.1}{\ignorespaces Comparison between SCRUM and UP}}{9}{table.caption.9}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 2: Architecture \centering logicielle et outils de travail}{12}{chapter.2}%
+\contentsline {table}{\numberline {2.1}{\ignorespaces Backlog de produit}}{17}{table.2.1}%
+\contentsline {table}{\numberline {2.2}{\ignorespaces Tableau de planification de release (mis à jour avec dates)}}{19}{table.2.2}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 3 : Testing and Deployment}{24}{chapter.3}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 4 : Sprint 1 \centering "Gestion des Utilisateurs" }{27}{chapter.4}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Tableau de Backlog de produit Sprint 1}}{28}{table.caption.18}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Description du cas d’utilisation « S'inscrire »}}{29}{table.caption.20}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Description du cas d’utilisation « S'authentifier »}}{30}{table.caption.21}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces Description du cas d’utilisation « Modifier le profil »}}{31}{table.caption.22}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces Description du cas d’utilisation « Modifier mot de passe »}}{31}{table.caption.23}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 5 : Sprint 2 " Gestion \centering des Universités Endroits et des Examens"}{41}{chapter.5}%
+\contentsline {table}{\numberline {5.1}{\ignorespaces Tableau de Backlog de produit Sprint 2}}{42}{table.caption.35}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Description du cas d’utilisation « Ajouter un endroit »}}{43}{table.caption.37}%
+\contentsline {table}{\numberline {5.3}{\ignorespaces Description du cas d’utilisation « Modifier un endroit »}}{44}{table.caption.38}%
+\contentsline {table}{\numberline {5.4}{\ignorespaces Description du cas d’utilisation « Supprimer un endroit »}}{44}{table.caption.39}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 6 :Sprint 3 " Gestion des \centering Transports ,Evénement et des Stages"}{53}{chapter.6}%
+\contentsline {table}{\numberline {6.1}{\ignorespaces Tableau de Backlog de produit Sprint 3}}{54}{table.caption.53}%
+\contentsline {table}{\numberline {6.2}{\ignorespaces Description du cas d’utilisation « Ajouter un stage »}}{56}{table.caption.55}%
+\contentsline {table}{\numberline {6.3}{\ignorespaces Description du cas d’utilisation « Modifier un stage »}}{56}{table.caption.56}%
+\contentsline {table}{\numberline {6.4}{\ignorespaces Description du cas d’utilisation « Supprimer un stage »}}{57}{table.caption.57}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 7 : Sprint 4 "Gestion \centering des Publications et des Notifications"}{64}{chapter.7}%
+\contentsline {table}{\numberline {7.1}{\ignorespaces Tableau de Backlog de produit Sprint 4}}{65}{table.caption.68}%
+\contentsline {table}{\numberline {7.2}{\ignorespaces Description du cas d’utilisation « Créer une publication »}}{67}{table.caption.70}%
+\contentsline {table}{\numberline {7.3}{\ignorespaces Description du cas d’utilisation « Créer une notification personnalisée »}}{68}{table.caption.71}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 8 : Sprint 5 "Recherche des données sur un Map, \centering Gestion des tableaux de bord et des Messageries"}{74}{chapter.8}%
+\contentsline {table}{\numberline {8.1}{\ignorespaces Tableau de Backlog de produit Sprint 5}}{75}{table.caption.80}%
+\contentsline {table}{\numberline {8.2}{\ignorespaces Description du cas d’utilisation « Envoyer un message à l'administrateur »}}{76}{table.caption.82}%
+\contentsline {table}{\numberline {8.3}{\ignorespaces Description du cas d’utilisation «Envoyer un message à un Étudiant »}}{77}{table.caption.83}%

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – Super Admin{% endblock %}
+{% block page_title %}Platform Dashboard{% endblock %}
+{% block content %}
+
+<!-- Stat Cards -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(124,106,239,.15);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#7c6aef" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    </div>
+    <div class="stat-body">
+      <p class="stat-label">Total Academies</p>
+      <p class="stat-value">{{ academies|length }}</p>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(52,211,153,.12);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    </div>
+    <div class="stat-body">
+      <p class="stat-label">Sub-Admins</p>
+      <p class="stat-value">{{ users|selectattr('role.value','eq','academy_admin')|list|length }}</p>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(251,191,36,.12);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="stat-body">
+      <p class="stat-label">Global Q&amp;A Rows</p>
+      <p class="stat-value">{{ global_rows }}</p>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(96,165,250,.12);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div class="stat-body">
+      <p class="stat-label">Total Academy Rows</p>
+      <p class="stat-value">{{ total_academy_rows }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Academies Table -->
+<div class="card" style="margin-top:28px;">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <h2>All Academies</h2>
+    <a href="/super/academies" class="btn btn-sm btn-primary" style="margin-left:auto;">Manage</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>Academy</th><th>Slug</th><th>Sub-Admin</th><th>Rows</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for a in academies %}
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              {% if a.logo_path %}<img src="{{ a.logo_path }}" style="width:28px;height:28px;border-radius:6px;object-fit:cover;">
+              {% else %}<div class="academy-avatar" style="background:{{ a.accent_color }};width:28px;height:28px;font-size:.8rem;">{{ a.name[0]|upper }}</div>{% endif %}
+              <strong>{{ a.name }}</strong>
+            </div>
+          </td>
+          <td><code>{{ a.slug }}</code></td>
+          <td>{% for u in a.admins %}<span>{{ u.full_name }}</span>{% else %}<span class="text-muted">—</span>{% endfor %}</td>
+          <td>{{ a.slug|replace(a.slug, '')|length }}</td>
+          <td><span class="badge {{ 'badge-success' if a.is_active else 'badge-inactive' }}">{{ 'Active' if a.is_active else 'Inactive' }}</span></td>
+          <td><a href="/super/academies/{{ a.slug }}" class="btn btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

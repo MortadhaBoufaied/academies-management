@@ -1,0 +1,69 @@
+\chapter{Etude du chatbot Django + ML}
+
+\section{Objectif du chatbot}
+
+Le projet chatbot fournit un service de question/reponse local pour assister les utilisateurs sur des sujets academie (inscription, frais, planning, contact, etc.).
+
+\section{Stack technique}
+
+Le fichier \texttt{requirements.txt} indique une base Django 5.2.1 completee par des outils data science:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{pandas}
+  \item \texttt{numpy}
+  \item \texttt{scikit-learn}
+  \item \texttt{rapidfuzz}
+\end{itemize}
+
+\section{Exposition API}
+
+Le routage principal est defini par:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{/} pour l'interface web;
+  \item \texttt{/chat} pour chat web;
+  \item \texttt{/api/chat} pour integration applicative externe.
+\end{itemize}
+
+Le contrat \texttt{/api/chat} retourne notamment:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{response}
+  \item \texttt{score}
+  \item \texttt{category}
+  \item \texttt{source}
+  \item \texttt{matched\_question}
+\end{itemize}
+
+\section{Moteur de reponse}
+
+Le service \texttt{ml\_index.py} implemente une strategie en trois niveaux:
+\begin{enumerate}[leftmargin=*]
+  \item exact match sur question normalisee;
+  \item fuzzy match (RapidFuzz) si exact non trouve;
+  \item recherche TF-IDF + cosine similarity via scikit-learn.
+\end{enumerate}
+
+Le service \texttt{bot.py} combine aussi des intents predefinis avant de passer sur la recherche ML.
+
+\section{Configuration et tuning}
+
+Le fichier \texttt{settings.py} expose:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{QA\_CSV}: chemin du dataset question/reponse;
+  \item \texttt{MIN\_SIM}: seuil minimal similarity;
+  \item \texttt{FUZZY\_MIN}: seuil fuzzy matching;
+  \item \texttt{CHATBOT\_API\_KEY}: protection optionnelle de \texttt{/api/chat}.
+\end{itemize}
+
+\section{Securite API}
+
+Le module \texttt{api\_auth.py} permet de forcer une cle API via header \texttt{X-API-Key}. Cela facilite l'isolation de l'endpoint en environnement partage.
+
+\section{Integration avec Flutter}
+
+Le frontend Flutter utilise \texttt{ChatbotService.dart}:
+\begin{itemize}[leftmargin=*]
+  \item envoi \texttt{POST} JSON vers \texttt{CHATBOT\_API\_CHAT\_URL};
+  \item gestion du timeout via \texttt{API\_TIMEOUT};
+  \item support optionnel de \texttt{CHATBOT\_API\_KEY}.
+\end{itemize}
+
+Cette integration garde le chatbot decouple du backend principal, ce qui simplifie son evolution independante.

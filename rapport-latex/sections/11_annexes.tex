@@ -1,0 +1,57 @@
+\chapter{Annexes}
+
+\section{Annexe A - Commandes utiles}
+
+\subsection*{Backend}
+\begin{lstlisting}[style=codeblock,language=bash]
+cd football-academy
+mvn clean test
+mvn clean package -DskipTests
+mvn spring-boot:run
+\end{lstlisting}
+
+\subsection*{Frontend}
+\begin{lstlisting}[style=codeblock,language=bash]
+cd moez_project
+flutter pub get
+flutter analyze
+flutter test
+flutter run
+\end{lstlisting}
+
+\subsection*{Chatbot}
+\begin{lstlisting}[style=codeblock,language=bash]
+cd chatbot/chatbot
+python -m venv env_py10
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 127.0.0.1:8000
+\end{lstlisting}
+
+\section{Annexe B - Exemple de payload chatbot}
+
+\begin{lstlisting}[style=codeblock]
+{
+  "message": "How can I contact you?",
+  "sender_id": "optional"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=codeblock]
+{
+  "response": "...",
+  "score": 0.42,
+  "category": "Support/Contact",
+  "source": "Academy Info",
+  "matched_question": "How can I contact you?"
+}
+\end{lstlisting}
+
+\section{Annexe C - Emplacements a completer dans le rapport}
+
+\begin{itemize}
+  \item couverture: nom etablissement, encadrants, auteur;
+  \item captures d'ecran UI dans \texttt{figures/};
+  \item resultats de tests reels (latence, precision chatbot, couverture code);
+  \item diagrammes UML/BPMN si requis par le cahier de stage.
+\end{itemize}

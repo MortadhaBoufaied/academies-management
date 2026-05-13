@@ -1,0 +1,58 @@
+\chapter{Tests et assurance qualite}
+
+\section{Qualite backend}
+
+Le backend integre nativement plusieurs leviers qualite:
+\begin{itemize}[leftmargin=*]
+  \item tests unitaires via Surefire;
+  \item tests integration via Failsafe;
+  \item couverture via JaCoCo;
+  \item analyse statique via SpotBugs et Checkstyle (profil \texttt{analysis}).
+\end{itemize}
+
+Le pipeline GitLab automatise ces etapes avant la creation/push d'image Docker.
+
+\section{Qualite frontend}
+
+Le frontend Flutter peut etre verifie avec:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{flutter analyze} pour l'analyse statique;
+  \item \texttt{flutter test} pour tests unitaires/widgets;
+  \item tests manuels sur les parcours critiques (auth, navigation role-based, chat, notifications).
+\end{itemize}
+
+\section{Qualite chatbot}
+
+Pour le chatbot, trois niveaux de verification sont recommandes:
+\begin{itemize}[leftmargin=*]
+  \item tests fonctionnels de l'API \texttt{/api/chat};
+  \item evaluation precision sur un jeu de questions de reference;
+  \item suivi des scores similarity pour ajuster \texttt{MIN\_SIM} et \texttt{FUZZY\_MIN}.
+\end{itemize}
+
+\section{Scenario de validation bout en bout}
+
+\begin{enumerate}[leftmargin=*]
+  \item Connexion utilisateur Flutter et recuperation JWT.
+  \item Chargement des donnees metier depuis le backend.
+  \item Ouverture du module chat et verification des updates temps reel.
+  \item Appel chatbot et verification du format de reponse.
+  \item Verification des restrictions de role sur ecrans admin.
+\end{enumerate}
+
+\section{Indicateurs de suivi proposes}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.38\textwidth} p{0.48\textwidth}}
+\toprule
+\textbf{Indicateur} & \textbf{Objectif} \\
+\midrule
+Taux de succes API backend & Mesurer la stabilite des endpoints. \\
+Temps de reponse chat temps reel & Valider la fluidite conversationnelle. \\
+Precision chatbot (Top-1) & Evaluer la pertinence des reponses. \\
+Taux erreurs UI critiques & Reduire les regressions fonctionnelles. \\
+\bottomrule
+\end{tabular}
+\caption{KPIs qualite recommandes}
+\end{table}

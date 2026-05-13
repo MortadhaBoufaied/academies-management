@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Settings – {{ academy.name if academy else '' }}{% endblock %}
+{% block page_title %}Academy Settings{% endblock %}
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+  <!-- General Settings -->
+  <div class="card">
+    <div class="card-header">
+      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <h2>General</h2>
+    </div>
+    <form method="post" action="/admin/settings" class="auth-form" style="gap:14px;">
+      <div class="form-group"><label>Academy Name</label><input name="name" value="{{ academy.name if academy else '' }}" required></div>
+      <div class="form-group">
+        <label>Accent Color</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="color" name="accent_color" value="{{ academy.accent_color if academy else '#7c6aef' }}" style="width:48px;height:38px;padding:2px;border-radius:8px;border:1px solid var(--glass-border);background:transparent;cursor:pointer;">
+          <span class="text-muted" style="font-size:.85rem;">Brand color for your sidebar &amp; UI</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Save Settings</button>
+    </form>
+  </div>
+
+  <!-- Logo Upload -->
+  <div class="card">
+    <div class="card-header">
+      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <h2>Academy Logo</h2>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+      {% if academy and academy.logo_path %}
+        <img src="{{ academy.logo_path }}" style="width:72px;height:72px;border-radius:12px;object-fit:cover;">
+      {% else %}
+        <div class="academy-avatar academy-avatar-lg" style="background:{{ academy.accent_color if academy else '#7c6aef' }};">
+          {{ academy.name[0]|upper if academy else 'A' }}
+        </div>
+      {% endif %}
+      <div>
+        <p style="font-size:.9rem;font-weight:500;color:var(--text-bright);">{{ 'Logo uploaded' if academy and academy.logo_path else 'No logo yet' }}</p>
+        <p class="text-muted" style="font-size:.82rem;">PNG, JPG, SVG or WebP recommended</p>
+      </div>
+    </div>
+    <form method="post" action="/admin/settings/logo" enctype="multipart/form-data">
+      <div class="dropzone" style="padding:24px;position:relative;" onclick="document.getElementById('logo-input').click()">
+        <p class="dropzone-text" style="font-size:.9rem;">Click to upload a new logo</p>
+        <p class="dropzone-hint">Max 2MB, transparent background works best</p>
+        <input type="file" id="logo-input" name="logo" accept=".png,.jpg,.jpeg,.svg,.webp" style="position:absolute;inset:0;opacity:0;cursor:pointer;" onchange="previewLogo(this)">
+      </div>
+      <img id="logo-preview" style="display:none;width:64px;height:64px;object-fit:cover;border-radius:10px;margin-top:12px;">
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:12px;">Upload Logo</button>
+    </form>
+  </div>
+</div>
+
+<!-- Change Password shortcut -->
+<div class="card" style="margin-top:24px;max-width:480px;">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    <h2>Security</h2>
+  </div>
+  <a href="/auth/change-password" class="btn btn-primary">Change Password</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function previewLogo(input){
+  if(input.files && input.files[0]){
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('logo-preview');
+      img.src = e.target.result; img.style.display='block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

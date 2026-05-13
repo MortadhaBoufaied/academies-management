@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Upload Data – {{ academy.name if academy else '' }}{% endblock %}
+{% block page_title %}Upload Academy Data{% endblock %}
+{% block content %}
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <h2>Upload CSV File</h2>
+    {% if academy_rows %}<span class="badge badge-optional" style="margin-left:auto;">Current: {{ academy_rows }} rows</span>{% endif %}
+  </div>
+  <p class="card-description">Upload your academy's Q&amp;A data. This will merge with the global baseline automatically.</p>
+  <form method="post" action="/admin/upload" enctype="multipart/form-data" id="uform">
+    <div class="dropzone" id="udropzone" onclick="document.getElementById('ufile').click()">
+      <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+      <p class="dropzone-text">Drag &amp; drop your CSV file here</p>
+      <p class="dropzone-hint">or click to browse</p>
+      <input type="file" id="ufile" name="file" accept=".csv" required style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+    </div>
+    <div class="file-info" id="ufile-info" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="file-info-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      <span id="ufname"></span><span id="ufsize" class="file-size"></span>
+    </div>
+    <button type="submit" class="btn btn-primary" id="usubmit" style="margin-top:16px;width:100%">Upload &amp; Merge</button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <h2>CSV Schema Reference</h2>
+  </div>
+  <div class="table-wrapper">
+    <table class="schema-table">
+      <thead><tr><th>Column</th><th>Required?</th><th>Description</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><code>Question</code></td><td><span class="badge badge-required">Required</span></td><td>User utterance</td><td class="example">What are the fees?</td></tr>
+        <tr><td><code>Answer</code></td><td><span class="badge badge-required">Required</span></td><td>Bot response</td><td class="example">Annual fee is 1200 TND.</td></tr>
+        <tr><td><code>Category</code></td><td><span class="badge badge-optional">Optional</span></td><td>Topic category</td><td class="example">Fee Info</td></tr>
+        <tr><td><code>Source</code></td><td><span class="badge badge-optional">Optional</span></td><td>Source document</td><td class="example">Academy Info</td></tr>
+        <tr><td><code>Intent_ID</code></td><td><span class="badge badge-optional">Optional</span></td><td>Unique intent slug — overrides global row with same ID</td><td class="example">fees_info</td></tr>
+        <tr><td><code>Tags</code></td><td><span class="badge badge-optional">Optional</span></td><td>Comma-separated tags</td><td class="example">fees,payment</td></tr>
+        <tr><td><code>Active</code></td><td><span class="badge badge-optional">Optional</span></td><td>true/false — disable row without deleting</td><td class="example">true</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="example-block" style="margin-top:16px;">
+    <h3>Example CSV</h3>
+    <pre><code>Question;Answer;Category;Intent_ID
+What are the fees?;Annual fee is 1200 TND.;Fee Info;fees_info
+Training hours?;Mon-Fri 16:00-18:00.;Schedule;training_hours</code></pre>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('ufile').addEventListener('change',function(){
+  if(this.files.length){ const f=this.files[0];
+    document.getElementById('ufile-info').style.display='flex';
+    document.getElementById('ufname').textContent=f.name;
+    const kb=(f.size/1024).toFixed(1); document.getElementById('ufsize').textContent=kb>1024?(kb/1024).toFixed(1)+' MB':kb+' KB';
+    document.getElementById('udropzone').classList.add('has-file'); }
+});
+document.getElementById('uform').addEventListener('submit',()=>{
+  const b=document.getElementById('usubmit'); b.disabled=true; b.textContent='Uploading…';
+});
+</script>
+{% endblock %}

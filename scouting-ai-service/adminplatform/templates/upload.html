@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Admin interface for uploading chatbot training CSV files with schema documentation">
+    <title>Admin – CSV Upload | Chatbot Configuration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <!-- Animated background orbs -->
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                <h1>Admin Platform</h1>
+            </div>
+            <p class="subtitle">Chatbot CSV Configuration Manager</p>
+        </header>
+
+        <!-- Flash Messages -->
+        {% if success %}
+        <div class="alert alert-success" id="success-alert">
+            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>{{ success }}</span>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-error" id="error-alert">
+            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Upload Card -->
+        <section class="card upload-card" id="upload-section">
+            <div class="card-header">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <h2>Upload CSV File</h2>
+            </div>
+            <p class="card-description">
+                Upload a CSV file containing chatbot Q&A pairs. The file will be validated and deployed to the chatbot's training data.
+            </p>
+            <form method="post" enctype="multipart/form-data" class="upload-form" id="upload-form">
+                <div class="dropzone" id="dropzone">
+                    <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="12" y1="18" x2="12" y2="12"/>
+                        <polyline points="9 15 12 12 15 15"/>
+                    </svg>
+                    <p class="dropzone-text">Drag & drop your CSV file here</p>
+                    <p class="dropzone-hint">or click to browse</p>
+                    <input type="file" name="file" accept=".csv" required id="file-input" class="file-input"/>
+                </div>
+                <div class="file-info" id="file-info" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="file-info-icon">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span id="file-name"></span>
+                    <span id="file-size" class="file-size"></span>
+                </div>
+                <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                        <polyline points="17 1 21 5 17 9"/>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                    </svg>
+                    Upload & Validate
+                </button>
+            </form>
+        </section>
+
+        <!-- Preview Table (if we have preview data) -->
+        {% if preview %}
+        <section class="card preview-card" id="preview-section">
+            <div class="card-header">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="3" y1="9" x2="21" y2="9"/>
+                    <line x1="9" y1="21" x2="9" y2="9"/>
+                </svg>
+                <h2>Upload Preview</h2>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            {% for key in preview[0].keys() %}
+                            <th>{{ key }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in preview %}
+                        <tr>
+                            {% for val in row.values() %}
+                            <td>{{ val[:80] }}{% if val|length > 80 %}…{% endif %}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Schema Reference Card -->
+        <section class="card schema-card" id="schema-section">
+            <div class="card-header">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <h2>CSV Schema Reference</h2>
+            </div>
+            <p class="card-description">
+                Your CSV must contain the following columns. Use <strong>semicolons (;)</strong> or <strong>commas (,)</strong> as delimiters — both are auto‑detected.
+            </p>
+            <div class="table-wrapper">
+                <table class="schema-table">
+                    <thead>
+                        <tr>
+                            <th>Column Name</th>
+                            <th>Required</th>
+                            <th>Description</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Question</code></td>
+                            <td><span class="badge badge-required">Required</span></td>
+                            <td>The user question or utterance</td>
+                            <td class="example">What are the training hours?</td>
+                        </tr>
+                        <tr>
+                            <td><code>Answer</code></td>
+                            <td><span class="badge badge-required">Required</span></td>
+                            <td>The chatbot's response</td>
+                            <td class="example">Training is Mon–Fri, 16:00–18:00.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Category</code></td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Topic category for routing / analytics</td>
+                            <td class="example">Training/Schedule</td>
+                        </tr>
+                        <tr>
+                            <td><code>Source</code></td>
+                            <td><span class="badge badge-optional">Optional</span></td>
+                            <td>Source document reference</td>
+                            <td class="example">Academy Info</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="example-block">
+                <h3>Example CSV</h3>
+                <pre><code>Question;Answer;Category;Source
+What are the fees?;Annual fee is 1200 TND payable in instalments.;Fee Info;Academy Info
+How to register?;Visit our website or come to the office Mon-Sat 09:00-18:00.;Registration;Academy Info
+Do you have U15 teams?;Yes, we have U13, U15, U17 and U19 categories.;Teams;Coaches Handbook</code></pre>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Admin Platform &bull; Scouting AI Service &bull; {{ now().strftime('%Y') if now is defined else '2026' }}</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Drag-and-drop + file info display
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const submitBtn = document.getElementById('submit-btn');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                showFileInfo(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                showFileInfo(fileInput.files[0]);
+            }
+        });
+
+        function showFileInfo(file) {
+            fileInfo.style.display = 'flex';
+            fileName.textContent = file.name;
+            const kb = (file.size / 1024).toFixed(1);
+            fileSize.textContent = kb > 1024 ? (kb / 1024).toFixed(1) + ' MB' : kb + ' KB';
+            dropzone.classList.add('has-file');
+        }
+
+        // Form submit loading state
+        document.getElementById('upload-form').addEventListener('submit', () => {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `
+                <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                </svg>
+                Uploading…
+            `;
+        });
+
+        // Auto-dismiss alerts
+        document.querySelectorAll('.alert').forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 400);
+            }, 8000);
+        });
+    </script>
+</body>
+</html>

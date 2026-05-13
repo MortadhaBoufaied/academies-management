@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – {{ academy.name }}{% endblock %}
+{% block page_title %}{{ academy.name }} – Dashboard{% endblock %}
+{% block content %}
+
+<div class="stat-grid" style="margin-bottom:28px;">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(124,106,239,.15);"><svg viewBox="0 0 24 24" fill="none" stroke="#7c6aef" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+    <div class="stat-body"><p class="stat-label">Global Baseline Rows</p><p class="stat-value">{{ global_rows }}</p></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(52,211,153,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+    <div class="stat-body"><p class="stat-label">My Academy Rows</p><p class="stat-value">{{ academy_rows }}</p></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(251,191,36,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+    <div class="stat-body"><p class="stat-label">Merged (Chatbot) Rows</p><p class="stat-value">{{ merged_rows }}</p></div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+  <div class="card">
+    <div class="card-header">
+      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/></svg>
+      <h2>Quick Upload</h2>
+    </div>
+    <p class="card-description">Upload your academy's Q&amp;A CSV to update the chatbot data.</p>
+    <a href="/admin/upload" class="btn btn-primary" style="width:100%;">Upload CSV</a>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <h2>Chatbot Status</h2>
+    </div>
+    {% if has_data %}
+    <span class="badge badge-success" style="margin-bottom:12px;">Data loaded – {{ merged_rows }} rows active</span>
+    <p class="card-description">Your chatbot is running with {{ academy_rows }} custom rows merged on top of {{ global_rows }} global rows.</p>
+    {% else %}
+    <span class="badge badge-inactive" style="margin-bottom:12px;">No academy data yet</span>
+    <p class="card-description">Upload a CSV to activate your academy's chatbot.</p>
+    {% endif %}
+    <a href="/admin/chatbot" class="btn btn-primary" style="width:100%;margin-top:8px;">Chatbot Config</a>
+  </div>
+</div>
+
+<div class="card" style="margin-top:24px;">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <h2>Data Inheritance Model</h2>
+  </div>
+  <p class="card-description">
+    Your chatbot uses <strong>two data sources</strong>:<br>
+    <strong>① Global data</strong> ({{ global_rows }} rows) — set by the platform super admin. Contains shared FAQs visible to all academies.<br>
+    <strong>② Your academy data</strong> ({{ academy_rows }} rows) — your custom Q&amp;A. Rows with the same <code>Intent_ID</code> <em>override</em> the global version.
+  </p>
+  <div class="merge-diagram">
+    <div class="merge-box global">🌐 Global<br><strong>{{ global_rows }}</strong> rows</div>
+    <div class="merge-arrow">+</div>
+    <div class="merge-box academy" style="border-color:{{ academy.accent_color }};">🏟 {{ academy.name }}<br><strong>{{ academy_rows }}</strong> rows</div>
+    <div class="merge-arrow">=</div>
+    <div class="merge-box merged">⚡ Chatbot<br><strong>{{ merged_rows }}</strong> rows</div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Global Data – Super Admin{% endblock %}
+{% block page_title %}Global Chatbot Data{% endblock %}
+{% block content %}
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <h2>About Global Data</h2>
+  </div>
+  <p class="card-description">
+    The global CSV is the <strong>shared knowledge base</strong> inherited by every academy's chatbot.
+    It contains platform-wide Q&amp;A (registration, rules, general info).<br><br>
+    When an academy uploads their own CSV, rows with the same <code>Intent_ID</code> will <strong>override</strong> the global row.
+    All other global rows are appended to the academy's data automatically.
+  </p>
+  <div class="stat-card" style="max-width:280px;margin-top:8px;">
+    <div class="stat-icon" style="background:rgba(251,191,36,.12);"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+    <div class="stat-body">
+      <p class="stat-label">Current Global Rows</p>
+      <p class="stat-value">{{ global_rows }}</p>
+      {% if global_exists %}<span class="badge badge-success">File present</span>{% else %}<span class="badge badge-inactive">No file yet</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <h2>Upload Global CSV</h2>
+  </div>
+  <p class="card-description">Upload a CSV with <strong>Question;Answer</strong> (and optional Category, Source, Intent_ID, Tags…). All academy chatbots will be re-merged automatically.</p>
+  <form method="post" action="/super/global-upload" enctype="multipart/form-data" id="gform">
+    <div class="dropzone" id="gdropzone" onclick="document.getElementById('gfile').click()">
+      <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+      <p class="dropzone-text">Drag &amp; drop your CSV file here</p>
+      <p class="dropzone-hint">or click to browse</p>
+      <input type="file" id="gfile" name="file" accept=".csv" required style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+    </div>
+    <div class="file-info" id="gfile-info" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="file-info-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+      <span id="gfname"></span><span id="gfsize" class="file-size"></span>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-top:16px;width:100%">Upload &amp; Re-merge All Academies</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('gfile').addEventListener('change', function(){
+  if(this.files.length){ const f=this.files[0];
+    document.getElementById('gfile-info').style.display='flex';
+    document.getElementById('gfname').textContent=f.name;
+    const kb=(f.size/1024).toFixed(1); document.getElementById('gfsize').textContent=kb>1024?(kb/1024).toFixed(1)+' MB':kb+' KB';
+    document.getElementById('gdropzone').classList.add('has-file'); }
+});
+</script>
+{% endblock %}

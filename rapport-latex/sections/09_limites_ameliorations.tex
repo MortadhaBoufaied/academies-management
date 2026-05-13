@@ -1,0 +1,42 @@
+\chapter{Limites actuelles et pistes d'amelioration}
+
+\section{Limites identifiees}
+
+\subsection*{Limites plateforme mobile}
+Le document \texttt{README\_PLATFORM\_LIMITS.txt} signale que certaines fonctions system-wide (ex: scroll vocal hors app) necessitent du natif Android (ForegroundService + AccessibilityService), non couvert uniquement par la couche Flutter \texttt{/lib}.
+
+\subsection*{Dependance chatbot locale}
+En mode local, le chatbot est configure sur \texttt{localhost:8000}. Sans service actif, l'ecran chatbot doit afficher une degradation controlee (message d'erreur clair et non bloquant).
+
+\subsection*{Couverture endpoints contacts role-based}
+Le document \texttt{CONTACT\_PAGE\_IMPROVEMENTS.md} decrit des endpoints role-specifiques cibles. Leur alignement complet backend/frontend doit etre verifie en continu.
+
+\section{Ameliorations prioritaires}
+
+\begin{enumerate}[leftmargin=*]
+  \item Mettre en place une matrice de tests E2E par role (admin, trainer, parent, player).
+  \item Industrialiser le deploiement du chatbot (container dedie, health checks, monitoring).
+  \item Renforcer observabilite backend (metrics, tracing, dashboards).
+  \item Ajouter une strategie de gestion des secrets centralisee (vault ou equivalent).
+  \item Standardiser les conventions de code/lint pour reduire la dette technique.
+\end{enumerate}
+
+\section{Evolutions fonctionnelles chat/chatbot}
+
+D'apres les notes d'amelioration existantes, evolutions interessantes:
+\begin{itemize}[leftmargin=*]
+  \item indicateurs de frappe et accuses de lecture enrichis;
+  \item edition/suppression de messages;
+  \item recherche full-text conversationnelle;
+  \item support media (image, fichier, video);
+  \item enrichissement continu du dataset chatbot.
+\end{itemize}
+
+\section{Perspective architecture}
+
+A moyen terme, une evolution vers une architecture plus modulaire peut etre envisagee:
+\begin{itemize}[leftmargin=*]
+  \item API gateway;
+  \item separation claire service notifications/chatbot;
+  \item cache distribue pour accelerer les lectures frequentes.
+\end{itemize}

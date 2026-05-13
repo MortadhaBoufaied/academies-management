@@ -1,0 +1,78 @@
+\chapter{Sources documentaires exploitees}
+
+Ce rapport est base sur les documents techniques et fichiers de configuration suivants.
+
+\section{Sources backend (Spring Boot)}
+
+\begin{longtable}{p{0.42\textwidth} p{0.50\textwidth}}
+\toprule
+\textbf{Fichier} & \textbf{Apport principal} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Fichier} & \textbf{Apport principal} \\
+\midrule
+\endhead
+\texttt{football-academy/pom.xml} & Stack backend, dependances, tests, couverture, qualite. \\
+\texttt{football-academy/src/main/resources/application.properties} & Port, contexte, datasource, JWT, uploads, JPA. \\
+\texttt{football-academy/Dockerfile} & Build multi-stage et execution du jar. \\
+\texttt{football-academy/docker-compose.yml} & Variables d'environnement et exposition du service. \\
+\texttt{football-academy/.gitlab-ci.yml} & Pipeline CI/CD (test, build, docker push). \\
+\texttt{football-academy/HELP.md} & Notes de reference Maven/Spring Boot. \\
+\texttt{football-academy/src/README-ONEDRIVE-DB.md} & Clarification importante sur l'usage d'une vraie base DB. \\
+\texttt{football-academy/uploads/README.txt} & Strategie de stockage des images uploads. \\
+\bottomrule
+\end{longtable}
+
+\section{Sources frontend (Flutter)}
+
+\begin{longtable}{p{0.42\textwidth} p{0.50\textwidth}}
+\toprule
+\textbf{Fichier} & \textbf{Apport principal} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Fichier} & \textbf{Apport principal} \\
+\midrule
+\endhead
+\texttt{moez\_project/pubspec.yaml} & SDK, dependances Flutter, bibliotheques reseau/chat/maps. \\
+\texttt{moez\_project/lib/main.dart} & Point d'entree mobile, routes principales. \\
+\texttt{moez\_project/lib/main\_admin\_web.dart} & Point d'entree web admin, role guard admin. \\
+\texttt{moez\_project/lib/components/Constants.dart} & URL backend REST/WS et URL chatbot. \\
+\texttt{moez\_project/lib/l10n/app\_strings.dart} & Localisation multilingue (en, fr, ar). \\
+\texttt{moez\_project/CHAT\_SYSTEM\_IMPROVEMENTS.md} & Evolution architecture chat temps reel. \\
+\texttt{moez\_project/CONTACT\_PAGE\_IMPROVEMENTS.md} & Exigences et UX pour contacts role-based. \\
+\texttt{moez\_project/lib/README\_LIB\_UPDATED.md} & Regles resolution URL images/API. \\
+\texttt{moez\_project/lib/PATCH\_NOTES.md} & Correctifs historises (chat, popup, search). \\
+\texttt{moez\_project/lib/README\_PLATFORM\_LIMITS.txt} & Limites platforme (voice scrolling system-wide). \\
+\bottomrule
+\end{longtable}
+
+\section{Sources chatbot (Django + ML)}
+
+\begin{longtable}{p{0.42\textwidth} p{0.50\textwidth}}
+\toprule
+\textbf{Fichier} & \textbf{Apport principal} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Fichier} & \textbf{Apport principal} \\
+\midrule
+\endhead
+\texttt{chatbot/chatbot/README.md} & Objectif, endpoints, execution locale, tuning. \\
+\texttt{chatbot/chatbot/requirements.txt} & Dependencies Django + stack data science. \\
+\texttt{chatbot/chatbot/chatbot/settings.py} & Variables d'env, dataset QA, seuils similarity. \\
+\texttt{chatbot/chatbot/apps/chat/urls.py} & Routage web et API chat. \\
+\texttt{chatbot/chatbot/apps/chat/views.py} & Contrat API \texttt{/api/chat} et gestion cle API. \\
+\texttt{chatbot/chatbot/apps/chat/services/ml\_index.py} & Moteur retrieval TF-IDF + fuzzy + exact. \\
+\bottomrule
+\end{longtable}
+
+\section{Methodologie de consolidation}
+
+L'information retenue privilegie:
+\begin{itemize}[leftmargin=*]
+  \item les fichiers de configuration executable (source de verite technique),
+  \item les notes d'amelioration qui decrivent les decisions d'architecture,
+  \item les points d'entree applicatifs pour decrire les flux utilisateur.
+\end{itemize}

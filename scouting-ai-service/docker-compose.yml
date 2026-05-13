@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  scouting-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scouting_ai_service
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./data:/app/data
+
+  chatbot:
+    build:
+      context: ../chatbot/chatbot
+      dockerfile: Dockerfile
+    container_name: chatbot_service
+    restart: unless-stopped
+    ports:
+      - "8020:8020"
+    volumes:
+      - ../chatbot/chatbot/apps/chat/training_models/data:/app/apps/chat/training_models/data
+
+  admin-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+    container_name: admin_platform
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ../chatbot/chatbot/apps/chat/training_models/data:/app/chatbot_data
+    depends_on:
+      - scouting-ai
+
+
+{'='*80}

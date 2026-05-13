@@ -1,0 +1,113 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{float}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  urlcolor=blue!60!black,
+  citecolor=blue!60!black,
+  pdftitle={Rapport PFE - Football Academy Ecosystem},
+  pdfauthor={Nom Prenom}
+}
+
+\lstdefinestyle{codeblock}{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!70!black},
+  commentstyle=\color{green!40!black},
+  stringstyle=\color{orange!60!black},
+  frame=single,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\title{\textbf{Rapport de Projet de Fin d'Études}\\
+Application de Gestion des Académies Sportifs\\
+\large Sport Academy Pro\\
+\small Backend Spring Boot, Frontend Flutter, Chatbot Django, Service IA Scouting}
+\author{Mortadha Boufaied}
+\date{\today}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  {\Large République Tunisienne \par}
+  \vspace{0.4cm}
+  {\large Ministère de l'Enseignement Supérieur et de la Recherche Scientifique \par}
+  \vspace{0.8cm}
+  {\Large Institut Supérieur des Études Technologiques de Sfax \par}
+  \vspace{0.4cm}
+  {\large Année Universitaire : 2024/2025 \par}
+  \vspace{1.0cm}
+  {\Large \textbf{Rapport de Projet de Fin d'Études} \par}
+  \vspace{0.5cm}
+  {\large Master Professionnel DSIR \par}
+  \vspace{0.3cm}
+  {\large Développement des Systèmes Informatiques et Réseaux \par}
+  \vspace{0.3cm}
+  {\large Option : GLNT \par}
+  \vspace{1.2cm}
+  {\huge \textbf{Application de Gestion des Académies Sportifs} \par}
+  \vspace{0.3cm}
+  {\Large Sport Academy Pro \par}
+  \vspace{0.3cm}
+  {\large Backend + Frontend + Chatbot ML + Service IA Scouting \par}
+  \vfill
+
+  \begin{tabular}{ll}
+    \textbf{Réalisé par:} & Mortadha Boufaied \\
+    \textbf{Encadrant académique:} & [Nom à compléter] \\
+    \textbf{Encadrant entreprise:} & Farouk Abdelkarim \\
+    \textbf{Organisme:} & Farouk Abdelkarim Consulting / cody \\
+    \textbf{Année universitaire:} & 2024--2025
+  \end{tabular}
+
+  \vfill
+  {\large \today \par}
+\end{titlepage}
+
+\pagenumbering{roman}
+\tableofcontents
+\listoftables
+\clearpage
+
+\pagenumbering{arabic}
+
+\include{sections/00_resume_executif}
+\include{sections/01_introduction}
+\include{sections/02_sources_documentaires}
+\include{sections/03_architecture_globale}
+\include{sections/14_architecture_detaillee}
+\include{sections/04_backend_spring_boot}
+\include{sections/05_frontend_flutter}
+\include{sections/06_chatbot_django_ml}
+\include{sections/12_service_ia_scouting}
+\include{sections/13_fonctionnalites_multi_sport}
+\include{sections/07_integration_deploiement}
+\include{sections/08_tests_qualite}
+\include{sections/09_limites_ameliorations}
+\include{sections/10_conclusion}
+\include{sections/11_annexes}
+
+\bibliographystyle{plain}
+\bibliography{bibliography/references}
+
+\end{document}

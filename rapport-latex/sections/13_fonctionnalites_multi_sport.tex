@@ -1,0 +1,202 @@
+\chapter{Fonctionnalites Multi-sport}
+
+\section{Concept et architecture}
+
+La plateforme \textit{Sport Academy Pro} est concue pour etre multi-sport, permettant a une seule application de gerer differents sports (football, basketball, handball, speedball, etc.) sans duplication de code.
+
+\section{Principes de conception}
+
+\subsection*{Noyau commun}
+
+Un noyau commun gere les fonctionnalites transversales:
+
+\begin{itemize}[leftmargin=*]
+  \item Authentification et gestion des utilisateurs
+  \item Systeme de roles et permissions
+  \item Calendrier et planning
+  \item Messagerie et notifications
+  \item Paiements et cotisations
+  \item Back-office administratif
+\end{itemize}
+
+\subsection*{Elements configurables}
+
+Chaque sport dispose de configurations specifiques:
+
+\begin{itemize}[leftmargin=*]
+  \item Positions et roles sur le terrain
+  \item Statistiques et indicateurs de performance
+  \item Regles et configurations specifiques
+  \item Terminologie et labels
+\end{itemize}
+
+\section{Implementation technique}
+
+\subsection*{Modele de donnees multi-sport}
+
+\begin{lstlisting}[style=codeblock]
+// Entite Sport
+@Entity
+public class Sport {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;           // "Football", "Basketball", etc.
+    private String code;           // "FB", "BK", etc.
+    private boolean isActive;
+
+    @OneToMany(mappedBy = "sport")
+    private List<Position> positions;
+
+    @OneToMany(mappedBy = "sport")
+    private List<StatDefinition> statDefinitions;
+}
+
+// Entite Position (configurable par sport)
+@Entity
+public class Position {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;           // "Gardien", "Attaquant", etc.
+    private String code;           // "GK", "FW", etc.
+    private String abbreviation;
+
+    @ManyToOne
+    private Sport sport;
+}
+
+// Definition des statistiques par sport
+@Entity
+public class StatDefinition {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;           // "Buts", "Passes decisives"
+    private String code;           // "goals", "assists"
+    private String dataType;       // "integer", "decimal", "time"
+
+    @ManyToOne
+    private Sport sport;
+}
+\end{lstlisting}
+
+\subsection*{Configuration dynamique}
+
+Les configurations sont chargees dynamiquement selon le sport actif:
+
+\begin{lstlisting}[style=codeblock]
+@Service
+public class SportConfigService {
+
+    public List<Position> getPositions(Long sportId) {
+        return positionRepository.findBySportId(sportId);
+    }
+
+    public List<StatDefinition> getStatDefinitions(Long sportId) {
+        return statDefinitionRepository.findBySportId(sportId);
+    }
+
+    public SportConfig getSportConfig(Long sportId) {
+        Sport sport = sportRepository.findById(sportId)
+            .orElseThrow(() -> new SportNotFoundException(sportId));
+
+        return SportConfig.builder()
+            .sport(sport)
+            .positions(getPositions(sportId))
+            .statDefinitions(getStatDefinitions(sportId))
+            .build();
+    }
+}
+\end{lstlisting}
+
+\section{Fonctionnalites multi-sport}
+
+\subsection*{MS01 - Activation ou ajout d'un sport}
+
+L'administrateur peut activer ou desactiver des sports via le back-office:
+
+\begin{itemize}[leftmargin=*]
+  \item Liste des sports disponibles
+  \item Activation/desactivation en un clic
+  \item Configuration initiale des positions et statistiques
+\end{itemize}
+
+\subsection*{MS02 - Configuration par sport}
+
+Chaque sport peut etre configure independamment:
+
+\begin{itemize}[leftmargin=*]
+  \item Positions specifiques (ex: gardien, defenseur pour le football)
+  \item Statistiques pertinentes (buts pour football, points pour basketball)
+  \item Regles de calcul et indicateurs
+  \item Terminologie et labels
+\end{itemize}
+
+\subsection*{MS03 - UX unifiee}
+
+L'interface utilisateur reste la meme quel que soit le sport:
+
+\begin{itemize}[leftmargin=*]
+  \item Meme navigation et structure
+  \item Seules les donnees et labels changent
+  \item Adaptation automatique des formulaires
+  \item Filtres et recherches contextuels
+\end{itemize}
+
+\section{Exemples d'implementation}
+
+\subsection*{Football}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.3\textwidth} p{0.6\textwidth}}
+\toprule
+\textbf{Element} & \textbf{Configuration} \\
+\midrule
+Positions & Gardien, Defenseur, Milieu, Attaquant \\
+Statistiques & Buts, Passes decisives, Tacles, Interceptions \\
+Indicateurs & Note moyenne, Minutes jouees, Cartons \\
+\bottomrule
+\end{tabular}
+\caption{Configuration Football}
+\end{table}
+
+\subsection*{Basketball}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.3\textwidth} p{0.6\textwidth}}
+\toprule
+\textbf{Element} & \textbf{Configuration} \\
+\midrule
+Positions & Meneur, Arriere, Ailier, Pivot \\
+Statistiques & Points, Rebonds, Passes decisives, Interceptions \\
+Indicateurs & Pourcentage de tir, Plus/minus, Temps de jeu \\
+\bottomrule
+\end{tabular}
+\caption{Configuration Basketball}
+\end{table}
+
+\section{Avantages de l'approche multi-sport}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Maintenance simplifiee}: Un seul code base a maintenir
+  \item \textbf{Extensibilite}: Ajout facile de nouveaux sports
+  \item \textbf{Consistance}: UX uniforme pour tous les sports
+  \item \textbf{Economie d'echelle}: Developpement et maintenance optimises
+\end{itemize}
+
+\section{Integration avec les services IA}
+
+Les services IA s'adaptent automatiquement au sport:
+
+\begin{itemize}[leftmargin=*]
+  \item Calcul du potentiel selon les statistiques du sport
+  \item Analyse d'evolution contextuelle
+  \item Prediction de churn adaptee
+  \item Recherche scouting filtree par sport
+\end{itemize}

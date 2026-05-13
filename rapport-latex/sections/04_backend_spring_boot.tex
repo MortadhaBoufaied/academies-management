@@ -1,0 +1,112 @@
+\chapter{Etude du backend Spring Boot}
+
+\section{Stack technique}
+
+Le backend est un projet Spring Boot (parent \texttt{spring-boot-starter-parent} version 3.2.4) avec Java 17.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{0.35\textwidth} p{0.55\textwidth}}
+\toprule
+\textbf{Composant} & \textbf{Technologie} \\
+\midrule
+Framework principal & Spring Boot 3.2.4 \\
+Langage & Java 17 \\
+Web/API & spring-boot-starter-web \\
+Data access & spring-boot-starter-data-jpa \\
+Securite & spring-boot-starter-security + JWT (jjwt) \\
+Validation & spring-boot-starter-validation \\
+Temps reel & spring-boot-starter-websocket + STOMP \\
+Documentation API & springdoc-openapi-starter-webmvc-ui \\
+Messaging interne & spring-jms + Artemis Jakarta \\
+Base de donnees & MySQL (driver 8.0.33) \\
+\bottomrule
+\end{tabular}
+\caption{Synthese stack backend}
+\end{table}
+
+\section{Configuration serveur et donnees}
+
+Le backend expose par defaut:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{server.port=\$\{PORT:8091\}};
+  \item \texttt{server.servlet.context-path=/football-academy}.
+\end{itemize}
+
+La datasource configuree cible MySQL avec JPA/Hibernate. Le stockage des uploads repose sur \texttt{file.storage.location=uploads} et une exposition statique des ressources.
+
+\section{Securite et autorisations}
+
+\subsection*{JWT et filtres}
+La classe \texttt{JwtAuthenticationFilter} supporte:
+\begin{itemize}[leftmargin=*]
+  \item header \texttt{Authorization: Bearer <token>};
+  \item cookie \texttt{accessToken};
+  \item fallback parametre query (debug).
+\end{itemize}
+
+\subsection*{Regles de securite}
+La \texttt{SecurityConfig} applique une politique stateless et distingue:
+\begin{itemize}[leftmargin=*]
+  \item chemins publics (auth, assets, uploads, websocket);
+  \item routes admin restreintes a \texttt{ROLE\_ADMIN};
+  \item routes \texttt{/api/**} authentifiees.
+\end{itemize}
+
+\section{Organisation fonctionnelle REST}
+
+Les controleurs REST couvrent plusieurs domaines metier:
+\begin{itemize}[leftmargin=*]
+  \item authentification et profil;
+  \item gestion activites/matchs/calendar;
+  \item joueurs, entraineurs, parents, divisions, paiements;
+  \item notifications;
+  \item recherche globale;
+  \item chat et contacts.
+\end{itemize}
+
+\section{Chat temps reel backend}
+
+Le chat combine:
+\begin{itemize}[leftmargin=*]
+  \item endpoints REST \texttt{/api/chat/...} pour conversations/messages;
+  \item WebSocket STOMP endpoint \texttt{/ws};
+  \item broker simple avec prefixes \texttt{/topic} et \texttt{/queue};
+  \item file JMS interne pour l'envoi asynchrone des messages.
+\end{itemize}
+
+Cette architecture favorise la fluidite de l'interface chat et limite les rafraichissements manuels.
+
+\section{Build, tests et qualite}
+
+Le \texttt{pom.xml} inclut:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{maven-surefire-plugin} pour tests unitaires;
+  \item \texttt{maven-failsafe-plugin} pour tests integration;
+  \item \texttt{jacoco-maven-plugin} pour couverture;
+  \item profil \texttt{analysis} avec SpotBugs et Checkstyle.
+\end{itemize}
+
+\section{Conteneurisation et CI/CD}
+
+\subsection*{Docker}
+Le \texttt{Dockerfile} utilise un build multi-stage:
+\begin{enumerate}[leftmargin=*]
+  \item stage Maven pour compiler le jar;
+  \item stage runtime Temurin pour executer \texttt{app.jar}.
+\end{enumerate}
+
+\subsection*{Docker Compose}
+\texttt{docker-compose.yml} definit le service app, mappe le port \texttt{8091:8091} et monte le volume uploads.
+
+\subsection*{GitLab CI/CD}
+Le pipeline \texttt{.gitlab-ci.yml} execute:
+\begin{itemize}[leftmargin=*]
+  \item stage \texttt{test};
+  \item stage \texttt{build};
+  \item stage \texttt{docker-build} avec push registry.
+\end{itemize}
+
+\section{Point d'attention DB}
+
+Le document \texttt{README-ONEDRIVE-DB.md} rappelle qu'un lien OneDrive ne remplace pas un serveur DB. Une base relationnelle reelle (MySQL/PostgreSQL) reste obligatoire pour l'execution applicative.

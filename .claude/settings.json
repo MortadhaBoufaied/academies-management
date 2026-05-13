@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw spring-boot:run)",
+      "Bash(docker *)",
+      "Bash(./mvnw clean *)",
+      "Bash(cd /tmp)",
+      "Bash(dir *)",
+      "Bash(findstr -i admin)",
+      "Bash(PowerShell *)",
+      "Bash(cmd *)",
+      "Bash(pdflatex *)",
+      "Bash(jar -xf *)",
+      "Bash(jar -tf *)",
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(node *)",
+      "Bash(java *)",
+      "Bash(mvn *)",
+      "Bash(./mvnw *)"
+    ],
+    "defaultMode": "acceptEdits"
+  }
+}

@@ -1,0 +1,65 @@
+\chapter{Architecture globale de la solution}
+
+\section{Vue d'ensemble}
+
+La solution est organisee autour de trois blocs independants mais connectes:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Backend} \texttt{football-academy}: API metier, securite JWT, temps reel WebSocket, stockage fichiers.
+  \item \textbf{Frontend} \texttt{moez\_project}: application Flutter mobile + portail web admin.
+  \item \textbf{Chatbot} \texttt{chatbot}: service Django/ML expose via endpoint HTTP local.
+\end{itemize}
+
+\section{Schema logique}
+
+\begin{lstlisting}[style=codeblock]
++---------------------+            REST + STOMP WS            +------------------------+
+|  Flutter Mobile App |  <----------------------------------> | Spring Boot Backend    |
+|  (main.dart)        |                                        | /football-academy/api  |
++---------------------+                                        | /ws (STOMP)            |
+          |
+          | HTTP POST /api/chat
+          v
++---------------------+
+| Django Chatbot      |
+| (localhost:8000)    |
+| TF-IDF + fuzzy      |
++---------------------+
+
++---------------------+            REST + STOMP WS            +------------------------+
+| Flutter Admin Web   |  <----------------------------------> | Spring Boot Backend    |
+| (main_admin_web.dart)|                                       | (meme backend)         |
++---------------------+                                        +------------------------+
+\end{lstlisting}
+
+\section{Principe de separation des frontends}
+
+Le frontend contient deux points d'entree distincts:
+\begin{itemize}[leftmargin=*]
+  \item \texttt{lib/main.dart} pour l'application mobile utilisateur;
+  \item \texttt{lib/main\_admin\_web.dart} pour la plateforme admin web.
+\end{itemize}
+
+Cette approche permet de deployer les deux interfaces separement sans imposer les memes contraintes de distribution.
+
+\section{Flux principaux}
+
+\subsection*{Flux d'authentification}
+\begin{enumerate}[leftmargin=*]
+  \item l'utilisateur envoie ses credentials via l'app Flutter;
+  \item le backend valide et emet un JWT;
+  \item les routes sont protegees selon les roles (admin, trainer, etc.).
+\end{enumerate}
+
+\subsection*{Flux de chat temps reel}
+\begin{enumerate}[leftmargin=*]
+  \item le frontend charge conversations + contacts;
+  \item le frontend s'abonne aux topics WebSocket;
+  \item les nouveaux messages arrivent en push et mettent a jour UI.
+\end{enumerate}
+
+\subsection*{Flux chatbot}
+\begin{enumerate}[leftmargin=*]
+  \item l'utilisateur pose une question dans l'ecran chatbot Flutter;
+  \item Flutter appelle \texttt{POST /api/chat} du service Django;
+  \item Django retourne reponse + score + metadata de correspondance.
+\end{enumerate}

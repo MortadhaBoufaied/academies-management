@@ -1,0 +1,2856 @@
+﻿=== AI SCOUTING SYSTEM - ALL CODE FILES ===
+Generated: 05/13/2026 11:35:00
+
+
+
+
+{'='*80}
+FILE: adminplatform\auth.py
+{'='*80}
+
+"""
+adminplatform/auth.py â€“ JWT creation/validation and FastAPI role-guard dependencies.
+"""
+import os
+from datetime import datetime, timedelta
+from typing import Any
+
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+
+from adminplatform.db import AdminUser, UserRole, get_db
+
+# â”€â”€ Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+SECRET_KEY: str = os.getenv("ADMIN_JWT_SECRET", "change-me-use-a-long-random-secret-here")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 8
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+# â”€â”€ Password helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(plain: str, hashed: str) -> bool:
+    return pwd_context.verify(plain, hashed)
+
+
+# â”€â”€ JWT helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+def create_access_token(user_id: int, role: str, academy_id: int | None) -> str:
+    expire = datetime.utcnow() + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
+    payload: dict[str, Any] = {
+        "sub": str(user_id),
+        "role": role,
+        "academy_id": academy_id,
+        "exp": expire,
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def _decode_token(token: str) -> dict[str, Any]:
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired")
+
+
+# â”€â”€ Dependencies â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+def get_current_user(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> AdminUser:
+    """Returns the current logged-in user or raises 401 (caught by exception handler â†’ redirect)."""
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+    payload = _decode_token(token)
+    user = db.get(AdminUser, int(payload["sub"]))
+    if not user or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User inactive or not found")
+    return user
+
+
+def require_super_admin(user: AdminUser = Depends(get_current_user)) -> AdminUser:
+    if user.role != UserRole.super_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Super admin access required")
+    return user
+
+
+def require_any_admin(user: AdminUser = Depends(get_current_user)) -> AdminUser:
+    """Allows both super_admin and academy_admin."""
+    return user
+
+
+{'='*80}
+FILE: adminplatform\crud.py
+{'='*80}
+
+"""
+adminplatform/crud.py â€“ Database CRUD operations for AdminUser and Academy.
+"""
+from pathlib import Path
+from sqlalchemy.orm import Session
+
+from adminplatform.auth import hash_password
+from adminplatform.db import Academy, AdminUser, UserRole
+
+
+# â”€â”€ User operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def get_user_by_email(db: Session, email: str) -> AdminUser | None:
+    return db.query(AdminUser).filter(AdminUser.email == email.lower().strip()).first()
+
+
+def get_user_by_id(db: Session, user_id: int) -> AdminUser | None:
+    return db.get(AdminUser, user_id)
+
+
+def get_all_users(db: Session) -> list[AdminUser]:
+    return db.query(AdminUser).order_by(AdminUser.created_at.desc()).all()
+
+
+def create_user(
+    db: Session,
+    email: str,
+    full_name: str,
+    password: str,
+    role: UserRole,
+    academy_id: int | None = None,
+    must_change_password: bool = True,
+) -> AdminUser:
+    user = AdminUser(
+        email=email.lower().strip(),
+        full_name=full_name.strip(),
+        hashed_password=hash_password(password),
+        role=role,
+        academy_id=academy_id,
+        must_change_password=must_change_password,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def update_user_password(db: Session, user: AdminUser, new_password: str) -> AdminUser:
+    user.hashed_password = hash_password(new_password)
+    user.must_change_password = False
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def reset_user_password(db: Session, user: AdminUser, temp_password: str) -> AdminUser:
+    """Super admin resets a sub-admin password; forces change on next login."""
+    user.hashed_password = hash_password(temp_password)
+    user.must_change_password = True
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def set_user_active(db: Session, user_id: int, active: bool) -> AdminUser | None:
+    user = db.get(AdminUser, user_id)
+    if user:
+        user.is_active = active
+        db.commit()
+        db.refresh(user)
+    return user
+
+
+# â”€â”€ Academy operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def get_all_academies(db: Session) -> list[Academy]:
+    return db.query(Academy).order_by(Academy.name).all()
+
+
+def get_academy_by_id(db: Session, academy_id: int) -> Academy | None:
+    return db.get(Academy, academy_id)
+
+
+def get_academy_by_slug(db: Session, slug: str) -> Academy | None:
+    return db.query(Academy).filter(Academy.slug == slug).first()
+
+
+def create_academy(
+    db: Session,
+    name: str,
+    slug: str,
+    accent_color: str = "#7c6aef",
+    logo_path: str | None = None,
+    chatbot_url: str | None = None,
+) -> Academy:
+    academy = Academy(
+        name=name.strip(),
+        slug=slug.strip().lower(),
+        accent_color=accent_color,
+        logo_path=logo_path,
+        chatbot_url=chatbot_url,
+    )
+    db.add(academy)
+    db.commit()
+    db.refresh(academy)
+    # Create academy data directories
+    _ensure_academy_dirs(academy.slug)
+    return academy
+
+
+def update_academy(
+    db: Session,
+    academy: Academy,
+    name: str | None = None,
+    accent_color: str | None = None,
+    logo_path: str | None = None,
+    chatbot_url: str | None = None,
+    is_active: bool | None = None,
+) -> Academy:
+    if name is not None:
+        academy.name = name.strip()
+    if accent_color is not None:
+        academy.accent_color = accent_color
+    if logo_path is not None:
+        academy.logo_path = logo_path
+    if chatbot_url is not None:
+        academy.chatbot_url = chatbot_url
+    if is_active is not None:
+        academy.is_active = is_active
+    db.commit()
+    db.refresh(academy)
+    return academy
+
+
+def get_users_for_academy(db: Session, academy_id: int) -> list[AdminUser]:
+    return db.query(AdminUser).filter(AdminUser.academy_id == academy_id).all()
+
+
+# â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+_DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
+
+
+def _ensure_academy_dirs(slug: str) -> None:
+    (_DATA_ROOT / "academies" / slug).mkdir(parents=True, exist_ok=True)
+    (_DATA_ROOT / "global").mkdir(parents=True, exist_ok=True)
+    (_DATA_ROOT / "logos").mkdir(parents=True, exist_ok=True)
+
+
+{'='*80}
+FILE: adminplatform\db.py
+{'='*80}
+
+"""
+adminplatform/db.py â€“ SQLAlchemy models + session for the admin platform.
+Uses a separate SQLite file (data/admin.db) isolated from scouting-ai-service.
+"""
+from datetime import datetime
+from enum import Enum as PyEnum
+from pathlib import Path
+
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker
+from collections.abc import Generator
+
+# â”€â”€ Database file â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+_DB_PATH = Path(__file__).resolve().parent.parent / "data" / "admin.db"
+_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+engine = create_engine(
+    f"sqlite:///{_DB_PATH}",
+    connect_args={"check_same_thread": False},
+    pool_pre_ping=True,
+)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
+
+
+# â”€â”€ Base â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+class Base(DeclarativeBase):
+    pass
+
+
+# â”€â”€ Enums â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+class UserRole(str, PyEnum):
+    super_admin = "super_admin"
+    academy_admin = "academy_admin"
+
+
+# â”€â”€ Models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+class Academy(Base):
+    __tablename__ = "academies"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(200), nullable=False)
+    slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
+    logo_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    accent_color: Mapped[str] = mapped_column(String(20), default="#7c6aef", nullable=False)
+    chatbot_url: Mapped[str | None] = mapped_column(String(500), nullable=True)  # e.g. http://localhost:8020
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    admins: Mapped[list["AdminUser"]] = relationship(back_populates="academy", cascade="all, delete-orphan")
+
+
+class AdminUser(Base):
+    __tablename__ = "admin_users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True, nullable=False, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(200), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
+    academy_id: Mapped[int | None] = mapped_column(
+        ForeignKey("academies.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    academy: Mapped["Academy | None"] = relationship(back_populates="admins")
+
+
+# â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+def create_tables() -> None:
+    Base.metadata.create_all(bind=engine)
+
+
+def get_db() -> Generator:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+{'='*80}
+FILE: adminplatform\main.py
+{'='*80}
+
+"""adminplatform/main.py â€“ Full multi-tenant admin platform (Starlette 1.0 compatible)."""
+import secrets
+import string
+from datetime import datetime
+from pathlib import Path
+
+import httpx
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile, status
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+
+from adminplatform import auth, crud, merge
+from adminplatform.auth import (
+    create_access_token, get_current_user, require_super_admin,
+    require_any_admin, verify_password,
+)
+from adminplatform.db import AdminUser, UserRole, create_tables, get_db
+from adminplatform.merge import save_global_csv, save_academy_csv, merge_and_write
+
+# â”€â”€ Boot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+create_tables()
+
+_BASE = Path(__file__).resolve().parent
+_LOGO_DIR = _BASE.parent / "data" / "logos"
+_LOGO_DIR.mkdir(parents=True, exist_ok=True)
+
+app = FastAPI(title="Admin Platform", version="2.0.0")
+app.mount("/static", StaticFiles(directory=str(_BASE / "static")), name="static")
+app.mount("/logos", StaticFiles(directory=str(_LOGO_DIR)), name="logos")
+templates = Jinja2Templates(directory=str(_BASE / "templates"))
+
+
+# â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+def _r(url: str) -> RedirectResponse:
+    return RedirectResponse(url, status_code=303)
+
+
+def _t(request: Request, name: str, ctx: dict | None = None, status_code: int = 200):
+    """Wrapper for Starlette 1.0 TemplateResponse(request, name, context)."""
+    base = {"now": datetime.utcnow()}
+    if ctx:
+        base.update(ctx)
+    return templates.TemplateResponse(request, name, base, status_code=status_code)
+
+
+def _gen_password(length: int = 12) -> str:
+    chars = string.ascii_letters + string.digits
+    return "".join(secrets.choice(chars) for _ in range(length))
+
+
+async def _notify_chatbot(chatbot_url: str | None, slug: str) -> None:
+    if not chatbot_url:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            await client.post(f"{chatbot_url}/api/reload", json={"academy": slug})
+    except Exception:
+        pass
+
+
+# â”€â”€ Exception handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@app.exception_handler(401)
+async def auth_redirect(_req: Request, _exc: HTTPException):
+    return _r("/auth/login")
+
+
+@app.exception_handler(403)
+async def forbidden_handler(req: Request, exc: HTTPException):
+    return _t(req, "error.html", {"message": exc.detail}, status_code=403)
+
+
+# â”€â”€ Root â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@app.get("/")
+async def root():
+    return _r("/auth/login")
+
+
+# â”€â”€ Auth routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@app.get("/auth/login", response_class=HTMLResponse)
+async def login_page(request: Request, error: str = ""):
+    return _t(request, "login.html", {"error": error})
+
+
+@app.post("/auth/login")
+async def login_submit(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    user = crud.get_user_by_email(db, email)
+    if not user or not verify_password(password, user.hashed_password) or not user.is_active:
+        return _t(request, "login.html", {"error": "Invalid email or password."})
+    token = create_access_token(user.id, user.role.value, user.academy_id)
+    dest = "/auth/change-password" if user.must_change_password else (
+        "/super/dashboard" if user.role == UserRole.super_admin else "/admin/dashboard"
+    )
+    resp = _r(dest)
+    resp.set_cookie("access_token", token, httponly=True, max_age=28800, samesite="lax")
+    return resp
+
+
+@app.get("/auth/logout")
+async def logout():
+    resp = _r("/auth/login")
+    resp.delete_cookie("access_token")
+    return resp
+
+
+@app.get("/auth/change-password", response_class=HTMLResponse)
+async def change_pw_page(request: Request, user: AdminUser = Depends(get_current_user)):
+    return _t(request, "change_password.html", {"current_user": user})
+
+
+@app.post("/auth/change-password")
+async def change_pw_submit(
+    request: Request,
+    new_password: str = Form(...),
+    confirm: str = Form(...),
+    user: AdminUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if new_password != confirm:
+        return _t(request, "change_password.html", {"current_user": user, "error": "Passwords do not match."})
+    if len(new_password) < 8:
+        return _t(request, "change_password.html", {"current_user": user, "error": "Minimum 8 characters."})
+    crud.update_user_password(db, user, new_password)
+    dest = "/super/dashboard" if user.role == UserRole.super_admin else "/admin/dashboard"
+    return _r(dest)
+
+
+# â”€â”€ Super Admin routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@app.get("/super/dashboard", response_class=HTMLResponse)
+async def super_dashboard(
+    request: Request,
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+):
+    academies = crud.get_all_academies(db)
+    users = crud.get_all_users(db)
+    return _t(request, "super_dashboard.html", {
+        "current_user": user,
+        "academies": academies,
+        "users": users,
+        "global_rows": merge.get_global_row_count(),
+        "total_academy_rows": sum(merge.get_academy_row_count(a.slug) for a in academies),
+    })
+
+
+@app.get("/super/academies", response_class=HTMLResponse)
+async def super_academies(
+    request: Request,
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+    success: str = "",
+    error: str = "",
+):
+    return _t(request, "super_academies.html", {
+        "current_user": user,
+        "academies": crud.get_all_academies(db),
+        "success": success,
+        "error": error,
+    })
+
+
+@app.post("/super/academies")
+async def super_create_academy(
+    name: str = Form(...),
+    slug: str = Form(...),
+    accent_color: str = Form("#7c6aef"),
+    chatbot_url: str = Form(""),
+    admin_name: str = Form(...),
+    admin_email: str = Form(...),
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+):
+    slug = slug.lower().strip()
+    if crud.get_academy_by_slug(db, slug):
+        return _r(f"/super/academies?error=Slug+'{slug}'+already+exists")
+    if crud.get_user_by_email(db, admin_email):
+        return _r(f"/super/academies?error=Email+already+registered")
+    academy = crud.create_academy(db, name, slug, accent_color, chatbot_url=chatbot_url or None)
+    temp_pw = _gen_password()
+    crud.create_user(db, admin_email, admin_name, temp_pw, UserRole.academy_admin,
+                     academy_id=academy.id, must_change_password=True)
+    return _r(f"/super/academies/{slug}?success=Academy+created.+Temp+pw:+{temp_pw}")
+
+
+@app.get("/super/academies/{slug}", response_class=HTMLResponse)
+async def super_academy_detail(
+    slug: str,
+    request: Request,
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+    success: str = "",
+    error: str = "",
+):
+    academy = crud.get_academy_by_slug(db, slug)
+    if not academy:
+        raise HTTPException(404, "Academy not found")
+    return _t(request, "super_academy_detail.html", {
+        "current_user": user,
+        "academy": academy,
+        "admins": crud.get_users_for_academy(db, academy.id),
+        "success": success,
+        "error": error,
+        "academy_rows": merge.get_academy_row_count(slug),
+        "global_rows": merge.get_global_row_count(),
+        "merged_rows": merge.get_merged_row_count(slug),
+    })
+
+
+@app.post("/super/academies/{slug}/update")
+async def super_update_academy(
+    slug: str,
+    name: str = Form(...),
+    accent_color: str = Form(...),
+    chatbot_url: str = Form(""),
+    is_active: str = Form("on"),
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+):
+    academy = crud.get_academy_by_slug(db, slug)
+    if not academy:
+        raise HTTPException(404)
+    crud.update_academy(db, academy, name=name, accent_color=accent_color,
+                        chatbot_url=chatbot_url or None, is_active=(is_active == "on"))
+    return _r(f"/super/academies/{slug}?success=Academy+updated")
+
+
+@app.post("/super/academies/{slug}/logo")
+async def super_upload_logo(
+    slug: str,
+    logo: UploadFile = File(...),
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+):
+    academy = crud.get_academy_by_slug(db, slug)
+    if not academy:
+        raise HTTPException(404)
+    ext = Path(logo.filename).suffix.lower()
+    if ext not in {".png", ".jpg", ".jpeg", ".svg", ".webp"}:
+        return _r(f"/super/academies/{slug}?error=Invalid+image+format")
+    fname = f"{slug}{ext}"
+    (_LOGO_DIR / fname).write_bytes(await logo.read())
+    crud.update_academy(db, academy, logo_path=f"/logos/{fname}")
+    return _r(f"/super/academies/{slug}?success=Logo+updated")
+
+
+@app.post("/super/users/{user_id}/toggle")
+async def super_toggle_user(
+    user_id: int,
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+):
+    target = crud.get_user_by_id(db, user_id)
+    if not target:
+        raise HTTPException(404)
+    crud.set_user_active(db, user_id, not target.is_active)
+    slug = target.academy.slug if target.academy else ""
+    return _r(f"/super/academies/{slug}?success=User+status+updated")
+
+
+@app.post("/super/users/{user_id}/reset-password")
+async def super_reset_password(
+    user_id: int,
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+):
+    target = crud.get_user_by_id(db, user_id)
+    if not target:
+        raise HTTPException(404)
+    temp_pw = _gen_password()
+    crud.reset_user_password(db, target, temp_pw)
+    slug = target.academy.slug if target.academy else ""
+    return _r(f"/super/academies/{slug}?success=PW+reset.+New+temp:+{temp_pw}")
+
+
+@app.get("/super/global-upload", response_class=HTMLResponse)
+async def super_global_upload_page(
+    request: Request,
+    user: AdminUser = Depends(require_super_admin),
+    success: str = "",
+    error: str = "",
+):
+    return _t(request, "super_global_upload.html", {
+        "current_user": user,
+        "success": success,
+        "error": error,
+        "global_rows": merge.get_global_row_count(),
+        "global_exists": merge.get_global_csv_exists(),
+    })
+
+
+@app.post("/super/global-upload")
+async def super_global_upload_submit(
+    file: UploadFile = File(...),
+    user: AdminUser = Depends(require_super_admin),
+    db: Session = Depends(get_db),
+):
+    if not file.filename.endswith(".csv"):
+        return _r("/super/global-upload?error=Only+.csv+files+accepted")
+    rows = save_global_csv(await file.read())
+    for a in crud.get_all_academies(db):
+        if merge.get_academy_csv_exists(a.slug):
+            merge_and_write(a.slug)
+    return _r(f"/super/global-upload?success=Global+data+updated+({rows}+rows).+All+academies+re-merged.")
+
+
+# â”€â”€ Academy Admin routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@app.get("/admin/dashboard", response_class=HTMLResponse)
+async def admin_dashboard(
+    request: Request,
+    user: AdminUser = Depends(require_any_admin),
+    db: Session = Depends(get_db),
+):
+    if user.role == UserRole.super_admin:
+        return _r("/super/dashboard")
+    academy = crud.get_academy_by_id(db, user.academy_id) if user.academy_id else None
+    if not academy:
+        raise HTTPException(403, "No academy assigned to your account")
+    return _t(request, "admin_dashboard.html", {
+        "current_user": user,
+        "academy": academy,
+        "academy_rows": merge.get_academy_row_count(academy.slug),
+        "global_rows": merge.get_global_row_count(),
+        "merged_rows": merge.get_merged_row_count(academy.slug),
+        "has_data": merge.get_academy_csv_exists(academy.slug),
+    })
+
+
+@app.get("/admin/upload", response_class=HTMLResponse)
+async def admin_upload_page(
+    request: Request,
+    user: AdminUser = Depends(require_any_admin),
+    db: Session = Depends(get_db),
+    success: str = "",
+    error: str = "",
+):
+    if user.role == UserRole.super_admin:
+        return _r("/super/global-upload")
+    academy = crud.get_academy_by_id(db, user.academy_id)
+    return _t(request, "admin_upload.html", {
+        "current_user": user,
+        "academy": academy,
+        "success": success,
+        "error": error,
+        "academy_rows": merge.get_academy_row_count(academy.slug) if academy else 0,
+    })
+
+
+@app.post("/admin/upload")
+async def admin_upload_submit(
+    file: UploadFile = File(...),
+    user: AdminUser = Depends(require_any_admin),
+    db: Session = Depends(get_db),
+):
+    if user.role == UserRole.super_admin:
+        return _r("/super/global-upload")
+    academy = crud.get_academy_by_id(db, user.academy_id)
+    if not academy:
+        raise HTTPException(403, "No academy assigned")
+    if not file.filename.endswith(".csv"):
+        return _r("/admin/upload?error=Only+.csv+files+accepted")
+    rows = save_academy_csv(academy.slug, await file.read())
+    merge_and_write(academy.slug)
+    await _notify_chatbot(academy.chatbot_url, academy.slug)
+    return _r(f"/admin/upload?success=Uploaded+{rows}+rows.+Merged+data+ready.")
+
+
+@app.get("/admin/chatbot", response_class=HTMLResponse)
+async def admin_chatbot_page(
+    request: Request,
+    user: AdminUser = Depends(require_any_admin),
+    db: Session = Depends(get_db),
+    success: str = "",
+    error: str = "",
+):
+    if user.role == UserRole.super_admin:
+        return _r("/super/dashboard")
+    academy = crud.get_academy_by_id(db, user.academy_id)
+    if not academy:
+        raise HTTPException(403)
+    return _t(request, "admin_chatbot.html", {
+        "current_user": user,
+        "academy": academy,
+        "success": success,
+        "error": error,
+        "merged_rows": merge.get_merged_row_count(academy.slug),
+        "global_rows": merge.get_global_row_count(),
+        "academy_rows": merge.get_academy_row_count(academy.slug),
+        "has_merged": merge.get_academy_csv_exists(academy.slug),
+    })
+
+
+@app.post("/admin/chatbot/rebuild")
+async def admin_rebuild_merge(
+    user: AdminUser = Depends(require_any_admin),
+    db: Session = Depends(get_db),
+):
+    academy = crud.get_academy_by_id(db, user.academy_id)
+    if not academy:
+        raise HTTPException(403)
+    merge_and_write(academy.slug)
+    await _notify_chatbot(academy.chatbot_url, academy.slug)
+    return _r("/admin/chatbot?success=Chatbot+data+rebuilt+and+deployed.")
+
+
+@app.get("/admin/settings", response_class=HTMLResponse)
+async def admin_settings_page(
+    request: Request,
+    user: AdminUser = Depends(require_any_admin),
+    db: Session = Depends(get_db),
+    success: str = "",
+    error: str = "",
+):
+    if user.role == UserRole.super_admin:
+        return _r("/super/dashboard")
+    academy = crud.get_academy_by_id(db, user.academy_id)
+    return _t(request, "admin_settings.html", {
+        "current_user": user,
+        "academy": academy,
+        "success": success,
+        "error": error,
+    })
+
+
+@app.post("/admin/settings")
+async def admin_update_settings(
+    name: str = Form(...),
+    accent_color: str = Form(...),
+    user: AdminUser = Depends(require_any_admin),
+    db: Session = Depends(get_db),
+):
+    academy = crud.get_academy_by_id(db, user.academy_id)
+    if not academy:
+        raise HTTPException(403)
+    crud.update_academy(db, academy, name=name, accent_color=accent_color)
+    return _r("/admin/settings?success=Settings+saved")
+
+
+@app.post("/admin/settings/logo")
+async def admin_upload_logo(
+    logo: UploadFile = File(...),
+    user: AdminUser = Depends(require_any_admin),
+    db: Session = Depends(get_db),
+):
+    academy = crud.get_academy_by_id(db, user.academy_id)
+    if not academy:
+        raise HTTPException(403)
+    ext = Path(logo.filename).suffix.lower()
+    if ext not in {".png", ".jpg", ".jpeg", ".svg", ".webp"}:
+        return _r("/admin/settings?error=Invalid+image+format")
+    fname = f"{academy.slug}{ext}"
+    (_LOGO_DIR / fname).write_bytes(await logo.read())
+    crud.update_academy(db, academy, logo_path=f"/logos/{fname}")
+    return _r("/admin/settings?success=Logo+updated")
+
+
+{'='*80}
+FILE: adminplatform\merge.py
+{'='*80}
+
+"""
+adminplatform/merge.py â€“ CSV data-merge logic.
+
+Strategy:
+  1. Load global_data.csv  (set by super_admin â€“ baseline Q&A for all academies)
+  2. Load academy/{slug}/data.csv  (set by academy_admin â€“ academy-specific Q&A)
+  3. Merge: rows sharing the same Intent_ID â†’ academy row wins.
+            rows with no Intent_ID or unique IDs â†’ all included.
+  4. Write merged result to academies/{slug}/merged_data.csv
+  5. Optionally copy to the Django chatbot's data directory.
+"""
+import csv
+import io
+import shutil
+from pathlib import Path
+
+DATA_ROOT = Path(__file__).resolve().parent.parent / "data"
+GLOBAL_CSV = DATA_ROOT / "global" / "data.csv"
+ACADEMIES_DIR = DATA_ROOT / "academies"
+
+# Path to the Django chatbot's data folder (for file-system deployment)
+_CHATBOT_DATA = (
+    Path(__file__).resolve().parent.parent.parent
+    / "chatbot" / "chatbot" / "apps" / "chat" / "training_models" / "data"
+)
+
+
+# â”€â”€ CSV parsing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def _detect_delimiter(text: str) -> str:
+    first_line = text.splitlines()[0] if text.strip() else ""
+    return ";" if first_line.count(";") > first_line.count(",") else ","
+
+
+def _read_rows(path: Path) -> list[dict]:
+    if not path.exists() or not path.stat().st_size:
+        return []
+    text = path.read_text(encoding="utf-8-sig")
+    if not text.strip():
+        return []
+    delimiter = _detect_delimiter(text)
+    reader = csv.DictReader(io.StringIO(text), delimiter=delimiter)
+    return [{k.strip(): (v or "").strip() for k, v in row.items()} for row in reader]
+
+
+def _write_rows(path: Path, rows: list[dict]) -> None:
+    if not rows:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    headers = list(rows[0].keys())
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=headers, delimiter=";", extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+# â”€â”€ Merge logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def _build_merged_rows(slug: str) -> list[dict]:
+    global_rows = _read_rows(GLOBAL_CSV)
+    academy_rows = _read_rows(ACADEMIES_DIR / slug / "data.csv")
+
+    # Index global rows by Intent_ID (only those that have one)
+    global_by_intent: dict[str, dict] = {
+        row["Intent_ID"]: row
+        for row in global_rows
+        if row.get("Intent_ID")
+    }
+
+    # Academy rows override matching global intents
+    overridden_intents: set[str] = set()
+    merged: list[dict] = []
+
+    for row in academy_rows:
+        iid = row.get("Intent_ID", "").strip()
+        if iid and iid in global_by_intent:
+            overridden_intents.add(iid)
+        merged.append(row)
+
+    # Append global rows not overridden
+    for row in global_rows:
+        iid = row.get("Intent_ID", "").strip()
+        if not iid or iid not in overridden_intents:
+            merged.append(row)
+
+    return merged
+
+
+def merge_and_write(slug: str) -> Path:
+    """Produce merged_data.csv for an academy and return its path."""
+    rows = _build_merged_rows(slug)
+    out = ACADEMIES_DIR / slug / "merged_data.csv"
+    _write_rows(out, rows)
+
+    # Best-effort copy to Django chatbot data dir
+    if _CHATBOT_DATA.exists():
+        try:
+            dest = _CHATBOT_DATA / f"{slug}_data.csv"
+            shutil.copy2(str(out), str(dest))
+        except OSError:
+            pass
+
+    return out
+
+
+# â”€â”€ Statistics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def get_global_row_count() -> int:
+    return len(_read_rows(GLOBAL_CSV))
+
+
+def get_academy_row_count(slug: str) -> int:
+    return len(_read_rows(ACADEMIES_DIR / slug / "data.csv"))
+
+
+def get_merged_row_count(slug: str) -> int:
+    return len(_build_merged_rows(slug))
+
+
+# â”€â”€ Save helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+def save_global_csv(contents: bytes) -> int:
+    GLOBAL_CSV.parent.mkdir(parents=True, exist_ok=True)
+    GLOBAL_CSV.write_bytes(contents)
+    return get_global_row_count()
+
+
+def save_academy_csv(slug: str, contents: bytes) -> int:
+    dest = ACADEMIES_DIR / slug / "data.csv"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(contents)
+    return get_academy_row_count(slug)
+
+
+def get_global_csv_exists() -> bool:
+    return GLOBAL_CSV.exists() and GLOBAL_CSV.stat().st_size > 0
+
+
+def get_academy_csv_exists(slug: str) -> bool:
+    p = ACADEMIES_DIR / slug / "data.csv"
+    return p.exists() and p.stat().st_size > 0
+
+
+{'='*80}
+FILE: adminplatform\seed.py
+{'='*80}
+
+"""
+adminplatform/seed.py â€“ Bootstrap the first super_admin account.
+Run once: python -m adminplatform.seed
+"""
+import secrets
+import string
+import sys
+
+from adminplatform.db import AdminUser, UserRole, create_tables, get_db
+from adminplatform.auth import hash_password
+from adminplatform import crud
+
+
+def seed():
+    create_tables()
+    db = next(get_db())
+
+    existing = db.query(AdminUser).filter(AdminUser.role == UserRole.super_admin).first()
+    if existing:
+        print(f"[seed] Super admin already exists: {existing.email}")
+        return
+
+    email = "admin@platform.local"
+    password = "".join(secrets.choice(string.ascii_letters + string.digits) for _ in range(14))
+
+    crud.create_user(
+        db,
+        email=email,
+        full_name="Super Admin",
+        password=password,
+        role=UserRole.super_admin,
+        must_change_password=True,
+    )
+
+    print("=" * 55)
+    print("  Super admin created!")
+    print(f"  Email   : {email}")
+    print(f"  Password: {password}")
+    print("  NOTE: You will be forced to change this on first login.")
+    print("=" * 55)
+
+
+if __name__ == "__main__":
+    seed()
+
+
+{'='*80}
+FILE: adminplatform\__init__.py
+{'='*80}
+
+# Admin Platform â€“ CSV Upload Interface for Chatbot Configuration
+
+
+{'='*80}
+FILE: app\api\routes\data.py
+{'='*80}
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.core.config import get_settings
+from app.db.session import get_db
+from app.schemas.data import (
+    DataFeatureResponse,
+    ObservationUpsert,
+    PaymentUpsert,
+    PlayerUpsert,
+    SyncRequest,
+    SyncResult,
+    UpsertResult,
+)
+from app.services.data_service import (
+    sync_from_football_backend,
+    upsert_observations,
+    upsert_payments,
+    upsert_players,
+)
+from app.services.feature_engineering import build_feature_snapshot, get_player_by_external_id
+
+router = APIRouter(prefix="/data", tags=["data"])
+
+
+@router.post("/players/upsert", response_model=UpsertResult)
+def upsert_players_endpoint(payloads: list[PlayerUpsert], db: Session = Depends(get_db)) -> UpsertResult:
+    if not payloads:
+        raise HTTPException(status_code=400, detail="Payload must not be empty")
+    return upsert_players(db, payloads)
+
+
+@router.post("/observations/upsert", response_model=UpsertResult)
+def upsert_observations_endpoint(
+    payloads: list[ObservationUpsert],
+    db: Session = Depends(get_db),
+) -> UpsertResult:
+    if not payloads:
+        raise HTTPException(status_code=400, detail="Payload must not be empty")
+    return upsert_observations(db, payloads)
+
+
+@router.post("/payments/upsert", response_model=UpsertResult)
+def upsert_payments_endpoint(payloads: list[PaymentUpsert], db: Session = Depends(get_db)) -> UpsertResult:
+    if not payloads:
+        raise HTTPException(status_code=400, detail="Payload must not be empty")
+    return upsert_payments(db, payloads)
+
+
+@router.post("/sync/football-academy", response_model=SyncResult)
+def sync_football_academy_endpoint(
+    request: SyncRequest,
+    db: Session = Depends(get_db),
+) -> SyncResult:
+    settings = get_settings()
+    return sync_from_football_backend(db, settings, request)
+
+
+@router.get("/features/{player_external_id}", response_model=DataFeatureResponse)
+def get_features_endpoint(player_external_id: int, db: Session = Depends(get_db)) -> DataFeatureResponse:
+    player = get_player_by_external_id(db, player_external_id)
+    if player is None:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    snapshot = build_feature_snapshot(db, player)
+    return DataFeatureResponse(
+        player_external_id=player.external_id,
+        full_name=player.full_name,
+        position=player.position,
+        age=player.age,
+        feature_snapshot=snapshot,
+    )
+
+
+{'='*80}
+FILE: app\api\routes\health.py
+{'='*80}
+
+from fastapi import APIRouter
+
+router = APIRouter(tags=["health"])
+
+
+@router.get("/health")
+def health_check() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+{'='*80}
+FILE: app\api\routes\ml.py
+{'='*80}
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+from app.schemas.ml import ChurnResponse, EvolutionResponse, PotentialResponse
+from app.services.ml_service import get_churn_response, get_evolution_response, get_potential_response
+
+router = APIRouter(prefix="/ml", tags=["ml"])
+
+
+@router.get("/potential/{player_external_id}", response_model=PotentialResponse)
+def potential_endpoint(player_external_id: int, db: Session = Depends(get_db)) -> PotentialResponse:
+    try:
+        return get_potential_response(db, player_external_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/evolution/{player_external_id}", response_model=EvolutionResponse)
+def evolution_endpoint(
+    player_external_id: int,
+    window: int = Query(default=8, ge=1, le=24),
+    db: Session = Depends(get_db),
+) -> EvolutionResponse:
+    try:
+        return get_evolution_response(db, player_external_id, window=window)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/churn/{player_external_id}", response_model=ChurnResponse)
+def churn_endpoint(player_external_id: int, db: Session = Depends(get_db)) -> ChurnResponse:
+    try:
+        return get_churn_response(db, player_external_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+{'='*80}
+FILE: app\api\routes\scouter.py
+{'='*80}
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+from app.schemas.scouter import (
+    CompareRequest,
+    CompareResponse,
+    SearchResponse,
+    ShortlistGenerateRequest,
+    ShortlistResponse,
+)
+from app.services.scouter_service import compare_players, generate_shortlist, search_players
+
+router = APIRouter(prefix="/scouter", tags=["scouter"])
+
+
+@router.get("/players/search", response_model=SearchResponse)
+def search_players_endpoint(
+    q: str | None = Query(default=None),
+    position: str | None = Query(default=None),
+    age_min: int | None = Query(default=None, ge=5, le=60),
+    age_max: int | None = Query(default=None, ge=5, le=60),
+    min_potential: float | None = Query(default=None, ge=0.0, le=100.0),
+    max_churn: float | None = Query(default=None, ge=0.0, le=1.0),
+    trend_label: str | None = Query(default=None, pattern="^(progression|stabilite|regression)$"),
+    min_avg_rating: float | None = Query(default=None, ge=0.0, le=10.0),
+    limit: int = Query(default=20, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> SearchResponse:
+    return search_players(
+        db=db,
+        q=q,
+        position=position,
+        age_min=age_min,
+        age_max=age_max,
+        min_potential=min_potential,
+        max_churn=max_churn,
+        trend_label=trend_label,
+        min_avg_rating=min_avg_rating,
+        limit=limit,
+    )
+
+
+@router.post("/players/compare", response_model=CompareResponse)
+def compare_players_endpoint(request: CompareRequest, db: Session = Depends(get_db)) -> CompareResponse:
+    try:
+        return compare_players(db, request.player_external_ids)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/shortlists/generate", response_model=ShortlistResponse)
+def generate_shortlist_endpoint(
+    request: ShortlistGenerateRequest,
+    db: Session = Depends(get_db),
+) -> ShortlistResponse:
+    return generate_shortlist(db, request)
+
+
+{'='*80}
+FILE: app\api\routes\__init__.py
+{'='*80}
+
+
+
+{'='*80}
+FILE: app\api\__init__.py
+{'='*80}
+
+
+
+{'='*80}
+FILE: app\core\config.py
+{'='*80}
+
+from functools import lru_cache
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
+
+    app_name: str = "scouting-ai-service"
+    app_env: str = "dev"
+    api_v1_prefix: str = "/api/v1"
+
+    database_url: str = "sqlite:///./data/scouting.db"
+
+    football_backend_base_url: str = "http://localhost:8091/football-academy"
+    football_backend_bearer_token: str = ""
+    request_timeout_seconds: int = 20
+
+    cors_origins: list[str] = ["*"]
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value: str | list[str]) -> list[str]:
+        if isinstance(value, str):
+            parsed = [origin.strip() for origin in value.split(",") if origin.strip()]
+            return parsed or ["*"]
+        return value
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()
+
+
+{'='*80}
+FILE: app\core\__init__.py
+{'='*80}
+
+
+
+{'='*80}
+FILE: app\db\init_db.py
+{'='*80}
+
+from app.db.models import Base
+from app.db.session import engine
+
+
+def create_all_tables() -> None:
+    Base.metadata.create_all(bind=engine)
+
+
+{'='*80}
+FILE: app\db\models.py
+{'='*80}
+
+from datetime import date, datetime
+
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class PlayerProfile(Base):
+    __tablename__ = "player_profiles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    external_id: Mapped[int] = mapped_column(Integer, unique=True, index=True)
+
+    full_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    position: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    age: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    nationality: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    division_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    trainer_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    is_paid: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    goals: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    assists: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    matches: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    average_rating: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    observations: Mapped[list["PerformanceObservation"]] = relationship(
+        back_populates="player", cascade="all, delete-orphan"
+    )
+    payments: Mapped[list["PaymentStatus"]] = relationship(
+        back_populates="player", cascade="all, delete-orphan"
+    )
+
+
+class PerformanceObservation(Base):
+    __tablename__ = "performance_observations"
+    __table_args__ = (
+        UniqueConstraint("player_id", "observed_on", name="uq_observation_player_date"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("player_profiles.id", ondelete="CASCADE"), index=True)
+
+    observed_on: Mapped[date] = mapped_column(Date, index=True)
+    goals: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    assists: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    matches_played: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    average_rating: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+
+    minutes_played: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    training_attendance: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
+    injury_days: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    player: Mapped[PlayerProfile] = relationship(back_populates="observations")
+
+
+class PaymentStatus(Base):
+    __tablename__ = "payment_statuses"
+    __table_args__ = (
+        UniqueConstraint("player_id", "month", name="uq_payment_player_month"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    player_id: Mapped[int] = mapped_column(ForeignKey("player_profiles.id", ondelete="CASCADE"), index=True)
+
+    month: Mapped[date] = mapped_column(Date, index=True)
+    amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    is_paid: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    player: Mapped[PlayerProfile] = relationship(back_populates="payments")
+
+
+{'='*80}
+FILE: app\db\session.py
+{'='*80}
+
+from collections.abc import Generator
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from app.core.config import get_settings
+
+settings = get_settings()
+
+connect_args: dict[str, bool] = {}
+if settings.database_url.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(settings.database_url, pool_pre_ping=True, connect_args=connect_args)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
+
+
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+{'='*80}
+FILE: app\db\__init__.py
+{'='*80}
+
+
+
+{'='*80}
+FILE: app\schemas\data.py
+{'='*80}
+
+from datetime import date
+
+from pydantic import BaseModel, Field
+
+
+class PlayerUpsert(BaseModel):
+    external_id: int = Field(gt=0)
+    full_name: str = Field(min_length=2, max_length=150)
+    position: str | None = None
+    age: int | None = Field(default=None, ge=5, le=60)
+    nationality: str | None = None
+    division_name: str | None = None
+    trainer_id: int | None = Field(default=None, gt=0)
+    is_paid: bool = True
+    goals: int = Field(default=0, ge=0)
+    assists: int = Field(default=0, ge=0)
+    matches: int = Field(default=0, ge=0)
+    average_rating: float = Field(default=0.0, ge=0.0, le=10.0)
+
+
+class ObservationUpsert(BaseModel):
+    player_external_id: int = Field(gt=0)
+    observed_on: date
+    goals: int = Field(default=0, ge=0)
+    assists: int = Field(default=0, ge=0)
+    matches_played: int = Field(default=1, ge=0)
+    average_rating: float = Field(default=0.0, ge=0.0, le=10.0)
+    minutes_played: int = Field(default=0, ge=0)
+    training_attendance: float = Field(default=1.0, ge=0.0, le=1.0)
+    injury_days: int = Field(default=0, ge=0)
+    notes: str | None = None
+
+
+class PaymentUpsert(BaseModel):
+    player_external_id: int = Field(gt=0)
+    month: date
+    amount: float = Field(default=0.0, ge=0.0)
+    is_paid: bool = False
+
+
+class UpsertResult(BaseModel):
+    inserted: int
+    updated: int
+
+
+class SyncRequest(BaseModel):
+    base_url: str | None = None
+    include_players: bool = True
+    include_payments: bool = True
+    create_observation_snapshot: bool = True
+
+
+class SyncResult(BaseModel):
+    players_upserted: int
+    observations_upserted: int
+    payments_upserted: int
+    warnings: list[str]
+
+
+class FeatureSnapshot(BaseModel):
+    observations_count: int
+    avg_rating: float
+    rating_std: float
+    goals_per_match: float
+    assists_per_match: float
+    performance_index: float
+    performance_slope: float
+    rating_slope: float
+    attendance_ratio: float
+    unpaid_ratio: float
+    injury_days_avg: float
+    days_since_last_activity: int
+
+
+class DataFeatureResponse(BaseModel):
+    player_external_id: int
+    full_name: str
+    position: str | None
+    age: int | None
+    feature_snapshot: FeatureSnapshot
+
+
+{'='*80}
+FILE: app\schemas\ml.py
+{'='*80}
+
+from datetime import date
+from typing import Literal
+
+from pydantic import BaseModel
+
+from app.schemas.data import FeatureSnapshot
+
+
+class FactorExplanation(BaseModel):
+    factor: str
+    value: float
+    weight: float
+    contribution_points: float
+
+
+class PotentialResponse(BaseModel):
+    player_external_id: int
+    potential_score: float
+    level: Literal["elite", "prometteur", "a_developper"]
+    factors: list[FactorExplanation]
+    feature_snapshot: FeatureSnapshot
+
+
+class EvolutionPoint(BaseModel):
+    observed_on: date
+    average_rating: float
+    performance_index: float
+
+
+class EvolutionResponse(BaseModel):
+    player_external_id: int
+    trend_label: Literal["progression", "stabilite", "regression"]
+    confidence: float
+    performance_slope: float
+    rating_slope: float
+    details: dict[str, float]
+    timeline: list[EvolutionPoint]
+
+
+class ChurnResponse(BaseModel):
+    player_external_id: int
+    risk_score: float
+    risk_level: Literal["faible", "moyen", "eleve"]
+    probable_reasons: list[str]
+    recommended_actions: list[str]
+    feature_snapshot: FeatureSnapshot
+
+
+{'='*80}
+FILE: app\schemas\scouter.py
+{'='*80}
+
+from datetime import datetime
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+
+class ScouterPlayerCard(BaseModel):
+    player_external_id: int
+    full_name: str
+    position: str | None
+    age: int | None
+    division_name: str | None
+    potential_score: float
+    churn_risk: float
+    trend_label: Literal["progression", "stabilite", "regression"]
+    avg_rating: float
+    goals_per_match: float
+    assists_per_match: float
+    attendance_ratio: float
+    shortlist_score: float | None = None
+
+
+class SearchResponse(BaseModel):
+    total: int
+    items: list[ScouterPlayerCard]
+
+
+class CompareRequest(BaseModel):
+    player_external_ids: list[int] = Field(min_length=2, max_length=20)
+
+
+class CompareResponse(BaseModel):
+    players: list[ScouterPlayerCard]
+    highlights: dict[str, int]
+
+
+class ShortlistGenerateRequest(BaseModel):
+    title: str = "Shortlist Scouting"
+    strategy: Literal["balanced", "high_potential", "low_risk", "breakthrough"] = "balanced"
+    q: str | None = None
+    position: str | None = None
+    age_min: int | None = Field(default=None, ge=5, le=60)
+    age_max: int | None = Field(default=None, ge=5, le=60)
+    min_potential: float | None = Field(default=None, ge=0.0, le=100.0)
+    max_churn: float | None = Field(default=None, ge=0.0, le=1.0)
+    trend_label: Literal["progression", "stabilite", "regression"] | None = None
+    min_avg_rating: float | None = Field(default=None, ge=0.0, le=10.0)
+    top_n: int = Field(default=15, ge=1, le=100)
+
+
+class ShortlistResponse(BaseModel):
+    title: str
+    strategy: str
+    generated_at: datetime
+    total: int
+    players: list[ScouterPlayerCard]
+
+
+{'='*80}
+FILE: app\schemas\__init__.py
+{'='*80}
+
+
+
+{'='*80}
+FILE: app\services\data_service.py
+{'='*80}
+
+from __future__ import annotations
+
+from datetime import date
+
+import httpx
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.core.config import Settings
+from app.db.models import PaymentStatus, PerformanceObservation, PlayerProfile
+from app.schemas.data import (
+    ObservationUpsert,
+    PaymentUpsert,
+    PlayerUpsert,
+    SyncRequest,
+    SyncResult,
+    UpsertResult,
+)
+
+
+def _to_int(value: object, default: int = 0) -> int:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return int(value)
+    try:
+        return int(str(value).strip())
+    except Exception:
+        return default
+
+
+def _to_float(value: object, default: float = 0.0) -> float:
+    if value is None:
+        return default
+    if isinstance(value, (int, float)):
+        return float(value)
+    try:
+        return float(str(value).strip())
+    except Exception:
+        return default
+
+
+def _to_bool(value: object, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    lowered = str(value).strip().lower()
+    if lowered in {"1", "true", "yes", "y"}:
+        return True
+    if lowered in {"0", "false", "no", "n"}:
+        return False
+    return default
+
+
+def _to_date(value: object) -> date | None:
+    if isinstance(value, date):
+        return value
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text[:10])
+    except Exception:
+        return None
+
+
+def _get_or_create_player(db: Session, external_id: int) -> PlayerProfile:
+    player = db.scalar(select(PlayerProfile).where(PlayerProfile.external_id == external_id))
+    if player is not None:
+        return player
+
+    player = PlayerProfile(
+        external_id=external_id,
+        full_name=f"Player {external_id}",
+        is_paid=True,
+    )
+    db.add(player)
+    db.flush()
+    return player
+
+
+def upsert_players(db: Session, payloads: list[PlayerUpsert]) -> UpsertResult:
+    inserted = 0
+    updated = 0
+
+    for payload in payloads:
+        player = db.scalar(select(PlayerProfile).where(PlayerProfile.external_id == payload.external_id))
+
+        if player is None:
+            player = PlayerProfile(external_id=payload.external_id, full_name=payload.full_name)
+            db.add(player)
+            inserted += 1
+        else:
+            updated += 1
+
+        player.full_name = payload.full_name
+        player.position = payload.position
+        player.age = payload.age
+        player.nationality = payload.nationality
+        player.division_name = payload.division_name
+        player.trainer_id = payload.trainer_id
+        player.is_paid = payload.is_paid
+        player.goals = payload.goals
+        player.assists = payload.assists
+        player.matches = payload.matches
+        player.average_rating = payload.average_rating
+
+    db.commit()
+    return UpsertResult(inserted=inserted, updated=updated)
+
+
+def upsert_observations(db: Session, payloads: list[ObservationUpsert]) -> UpsertResult:
+    inserted = 0
+    updated = 0
+
+    for payload in payloads:
+        player = _get_or_create_player(db, payload.player_external_id)
+        observation = db.scalar(
+            select(PerformanceObservation).where(
+                PerformanceObservation.player_id == player.id,
+                PerformanceObservation.observed_on == payload.observed_on,
+            )
+        )
+
+        if observation is None:
+            observation = PerformanceObservation(player_id=player.id, observed_on=payload.observed_on)
+            db.add(observation)
+            inserted += 1
+        else:
+            updated += 1
+
+        observation.goals = payload.goals
+        observation.assists = payload.assists
+        observation.matches_played = payload.matches_played
+        observation.average_rating = payload.average_rating
+        observation.minutes_played = payload.minutes_played
+        observation.training_attendance = payload.training_attendance
+        observation.injury_days = payload.injury_days
+        observation.notes = payload.notes
+
+    db.commit()
+    return UpsertResult(inserted=inserted, updated=updated)
+
+
+def upsert_payments(db: Session, payloads: list[PaymentUpsert]) -> UpsertResult:
+    inserted = 0
+    updated = 0
+
+    for payload in payloads:
+        player = _get_or_create_player(db, payload.player_external_id)
+        payment = db.scalar(
+            select(PaymentStatus).where(
+                PaymentStatus.player_id == player.id,
+                PaymentStatus.month == payload.month,
+            )
+        )
+
+        if payment is None:
+            payment = PaymentStatus(player_id=player.id, month=payload.month)
+            db.add(payment)
+            inserted += 1
+        else:
+            updated += 1
+
+        payment.amount = payload.amount
+        payment.is_paid = payload.is_paid
+
+        if payload.is_paid:
+            player.is_paid = True
+
+    db.commit()
+    return UpsertResult(inserted=inserted, updated=updated)
+
+
+def sync_from_football_backend(
+    db: Session,
+    settings: Settings,
+    request: SyncRequest,
+) -> SyncResult:
+    base_url = (request.base_url or settings.football_backend_base_url).rstrip("/")
+    headers: dict[str, str] = {}
+    if settings.football_backend_bearer_token:
+        headers["Authorization"] = f"Bearer {settings.football_backend_bearer_token}"
+
+    warnings: list[str] = []
+    players_upserted = 0
+    observations_upserted = 0
+    payments_upserted = 0
+
+    timeout = settings.request_timeout_seconds
+
+    with httpx.Client(timeout=timeout, headers=headers) as client:
+        if request.include_players:
+            try:
+                players_resp = client.get(f"{base_url}/api/players")
+                players_resp.raise_for_status()
+                players_json = players_resp.json()
+                if not isinstance(players_json, list):
+                    raise ValueError("Unexpected payload for /api/players")
+
+                player_payloads: list[PlayerUpsert] = []
+                observation_payloads: list[ObservationUpsert] = []
+
+                for raw_player in players_json:
+                    external_id = _to_int(raw_player.get("id"), 0)
+                    if external_id <= 0:
+                        continue
+
+                    player_payloads.append(
+                        PlayerUpsert(
+                            external_id=external_id,
+                            full_name=str(raw_player.get("nom") or f"Player {external_id}"),
+                            position=raw_player.get("position"),
+                            age=_to_int(raw_player.get("age"), 0) or None,
+                            nationality=raw_player.get("nationalite") or raw_player.get("nationality"),
+                            division_name=(str(raw_player.get("divisionId")) if raw_player.get("divisionId") else None),
+                            trainer_id=_to_int(raw_player.get("trainerId"), 0) or None,
+                            is_paid=_to_bool(raw_player.get("paid"), _to_bool(raw_player.get("isPaid"), True)),
+                            goals=_to_int(raw_player.get("goals"), 0),
+                            assists=_to_int(raw_player.get("assists"), 0),
+                            matches=_to_int(raw_player.get("matches"), 0),
+                            average_rating=_to_float(
+                                raw_player.get("rating", raw_player.get("averageRating", 0.0)),
+                                0.0,
+                            ),
+                        )
+                    )
+
+                    if request.create_observation_snapshot:
+                        observation_payloads.append(
+                            ObservationUpsert(
+                                player_external_id=external_id,
+                                observed_on=date.today(),
+                                goals=_to_int(raw_player.get("goals"), 0),
+                                assists=_to_int(raw_player.get("assists"), 0),
+                                matches_played=max(_to_int(raw_player.get("matches"), 0), 0),
+                                average_rating=_to_float(
+                                    raw_player.get("rating", raw_player.get("averageRating", 0.0)),
+                                    0.0,
+                                ),
+                                minutes_played=0,
+                                training_attendance=1.0,
+                                injury_days=0,
+                                notes="snapshot_sync_from_football_academy",
+                            )
+                        )
+
+                if player_payloads:
+                    result = upsert_players(db, player_payloads)
+                    players_upserted = result.inserted + result.updated
+
+                if observation_payloads:
+                    result = upsert_observations(db, observation_payloads)
+                    observations_upserted = result.inserted + result.updated
+            except Exception as exc:
+                warnings.append(f"Players sync failed: {exc}")
+
+        if request.include_payments:
+            try:
+                payments_resp = client.get(f"{base_url}/api/payments")
+                payments_resp.raise_for_status()
+                payments_json = payments_resp.json()
+                if not isinstance(payments_json, list):
+                    raise ValueError("Unexpected payload for /api/payments")
+
+                payment_payloads: list[PaymentUpsert] = []
+                for raw_payment in payments_json:
+                    player_external_id = _to_int(raw_payment.get("playerId"), 0)
+                    month = _to_date(raw_payment.get("mois"))
+
+                    if player_external_id <= 0 or month is None:
+                        continue
+
+                    payment_payloads.append(
+                        PaymentUpsert(
+                            player_external_id=player_external_id,
+                            month=month,
+                            amount=_to_float(raw_payment.get("montant"), 0.0),
+                            is_paid=_to_bool(raw_payment.get("paid"), _to_bool(raw_payment.get("isPaid"), False)),
+                        )
+                    )
+
+                if payment_payloads:
+                    result = upsert_payments(db, payment_payloads)
+                    payments_upserted = result.inserted + result.updated
+            except Exception as exc:
+                warnings.append(f"Payments sync failed: {exc}")
+
+    return SyncResult(
+        players_upserted=players_upserted,
+        observations_upserted=observations_upserted,
+        payments_upserted=payments_upserted,
+        warnings=warnings,
+    )
+
+
+{'='*80}
+FILE: app\services\feature_engineering.py
+{'='*80}
+
+from __future__ import annotations
+
+from datetime import date
+
+import numpy as np
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.db.models import PaymentStatus, PerformanceObservation, PlayerProfile
+from app.schemas.data import FeatureSnapshot
+
+
+def _clip(value: float, low: float, high: float) -> float:
+    return max(low, min(high, value))
+
+
+def _slope(values: list[float]) -> float:
+    if len(values) < 2:
+        return 0.0
+    x = np.arange(len(values), dtype=float)
+    y = np.asarray(values, dtype=float)
+    return float(np.polyfit(x, y, 1)[0])
+
+
+def _observation_performance_index(observation: PerformanceObservation) -> float:
+    matches = max(observation.matches_played, 1)
+    goals_per_match = observation.goals / matches
+    assists_per_match = observation.assists / matches
+
+    attack_component = _clip((goals_per_match * 0.7 + assists_per_match * 0.3) / 1.5, 0.0, 1.0)
+    rating_component = _clip(observation.average_rating / 10.0, 0.0, 1.0)
+    attendance_component = _clip(observation.training_attendance, 0.0, 1.0)
+    injury_penalty = _clip(observation.injury_days / 20.0, 0.0, 1.0) * 0.15
+
+    score = 0.55 * rating_component + 0.30 * attack_component + 0.15 * attendance_component - injury_penalty
+    return _clip(score, 0.0, 1.0)
+
+
+def get_player_by_external_id(db: Session, player_external_id: int) -> PlayerProfile | None:
+    return db.scalar(select(PlayerProfile).where(PlayerProfile.external_id == player_external_id))
+
+
+def build_feature_snapshot(db: Session, player: PlayerProfile) -> FeatureSnapshot:
+    observations = list(
+        db.scalars(
+            select(PerformanceObservation)
+            .where(PerformanceObservation.player_id == player.id)
+            .order_by(PerformanceObservation.observed_on.asc())
+        )
+    )
+
+    payments = list(
+        db.scalars(
+            select(PaymentStatus)
+            .where(PaymentStatus.player_id == player.id)
+            .order_by(PaymentStatus.month.asc())
+        )
+    )
+
+    if observations:
+        ratings = [obs.average_rating for obs in observations]
+        perf_indices = [_observation_performance_index(obs) for obs in observations]
+
+        total_goals = sum(obs.goals for obs in observations)
+        total_assists = sum(obs.assists for obs in observations)
+        total_matches = sum(obs.matches_played for obs in observations)
+
+        goals_per_match = total_goals / max(total_matches, 1)
+        assists_per_match = total_assists / max(total_matches, 1)
+
+        attendance_ratio = float(np.mean([obs.training_attendance for obs in observations]))
+        injury_days_avg = float(np.mean([obs.injury_days for obs in observations]))
+
+        avg_rating = float(np.mean(ratings))
+        rating_std = float(np.std(ratings))
+        performance_index = float(np.mean(perf_indices)) * 100.0
+
+        rating_slope = _slope(ratings)
+        performance_slope = _slope(perf_indices)
+
+        days_since_last_activity = (date.today() - observations[-1].observed_on).days
+    else:
+        goals_per_match = player.goals / max(player.matches, 1) if player.matches > 0 else 0.0
+        assists_per_match = player.assists / max(player.matches, 1) if player.matches > 0 else 0.0
+
+        avg_rating = float(player.average_rating)
+        rating_std = 0.0
+        rating_slope = 0.0
+        performance_slope = 0.0
+        attendance_ratio = 0.8
+        injury_days_avg = 0.0
+
+        base_perf = 0.65 * _clip(avg_rating / 10.0, 0.0, 1.0)
+        base_perf += 0.25 * _clip(goals_per_match / 1.2, 0.0, 1.0)
+        base_perf += 0.10 * _clip(assists_per_match / 0.8, 0.0, 1.0)
+        performance_index = _clip(base_perf, 0.0, 1.0) * 100.0
+
+        days_since_last_activity = 999
+
+    if payments:
+        recent_payments = payments[-6:]
+        unpaid_ratio = sum(1 for payment in recent_payments if not payment.is_paid) / len(recent_payments)
+    else:
+        unpaid_ratio = 0.0 if player.is_paid else 1.0
+
+    return FeatureSnapshot(
+        observations_count=len(observations),
+        avg_rating=round(avg_rating, 4),
+        rating_std=round(rating_std, 4),
+        goals_per_match=round(goals_per_match, 4),
+        assists_per_match=round(assists_per_match, 4),
+        performance_index=round(performance_index, 4),
+        performance_slope=round(performance_slope, 6),
+        rating_slope=round(rating_slope, 6),
+        attendance_ratio=round(_clip(attendance_ratio, 0.0, 1.0), 4),
+        unpaid_ratio=round(_clip(unpaid_ratio, 0.0, 1.0), 4),
+        injury_days_avg=round(max(injury_days_avg, 0.0), 4),
+        days_since_last_activity=max(days_since_last_activity, 0),
+    )
+
+
+def build_evolution_timeline(
+    db: Session,
+    player: PlayerProfile,
+    window: int = 8,
+) -> list[dict[str, float | date]]:
+    observations = list(
+        db.scalars(
+            select(PerformanceObservation)
+            .where(PerformanceObservation.player_id == player.id)
+            .order_by(PerformanceObservation.observed_on.asc())
+        )
+    )
+
+    if window > 0:
+        observations = observations[-window:]
+
+    timeline: list[dict[str, float | date]] = []
+    for observation in observations:
+        timeline.append(
+            {
+                "observed_on": observation.observed_on,
+                "average_rating": round(observation.average_rating, 4),
+                "performance_index": round(_observation_performance_index(observation) * 100.0, 4),
+            }
+        )
+
+    if not timeline:
+        snapshot = build_feature_snapshot(db, player)
+        timeline.append(
+            {
+                "observed_on": date.today(),
+                "average_rating": snapshot.avg_rating,
+                "performance_index": snapshot.performance_index,
+            }
+        )
+
+    return timeline
+
+
+{'='*80}
+FILE: app\services\ml_service.py
+{'='*80}
+
+from __future__ import annotations
+
+from sqlalchemy.orm import Session
+
+from app.schemas.ml import ChurnResponse, EvolutionPoint, EvolutionResponse, PotentialResponse
+from app.services.feature_engineering import (
+    build_evolution_timeline,
+    build_feature_snapshot,
+    get_player_by_external_id,
+)
+from app.services.scoring import compute_potential, evaluate_evolution, predict_churn
+
+
+def get_potential_response(db: Session, player_external_id: int) -> PotentialResponse:
+    player = get_player_by_external_id(db, player_external_id)
+    if player is None:
+        raise ValueError(f"Player not found: {player_external_id}")
+
+    snapshot = build_feature_snapshot(db, player)
+    score, level, factors = compute_potential(snapshot, player.age)
+
+    return PotentialResponse(
+        player_external_id=player_external_id,
+        potential_score=score,
+        level=level,
+        factors=factors,
+        feature_snapshot=snapshot,
+    )
+
+
+def get_evolution_response(db: Session, player_external_id: int, window: int = 8) -> EvolutionResponse:
+    player = get_player_by_external_id(db, player_external_id)
+    if player is None:
+        raise ValueError(f"Player not found: {player_external_id}")
+
+    snapshot = build_feature_snapshot(db, player)
+    trend_label, confidence, details = evaluate_evolution(snapshot)
+
+    timeline_raw = build_evolution_timeline(db, player, window=window)
+    timeline = [EvolutionPoint(**point) for point in timeline_raw]
+
+    return EvolutionResponse(
+        player_external_id=player_external_id,
+        trend_label=trend_label,
+        confidence=confidence,
+        performance_slope=snapshot.performance_slope,
+        rating_slope=snapshot.rating_slope,
+        details=details,
+        timeline=timeline,
+    )
+
+
+def get_churn_response(db: Session, player_external_id: int) -> ChurnResponse:
+    player = get_player_by_external_id(db, player_external_id)
+    if player is None:
+        raise ValueError(f"Player not found: {player_external_id}")
+
+    snapshot = build_feature_snapshot(db, player)
+    risk_score, risk_level, probable_reasons, recommended_actions = predict_churn(snapshot)
+
+    return ChurnResponse(
+        player_external_id=player_external_id,
+        risk_score=risk_score,
+        risk_level=risk_level,
+        probable_reasons=probable_reasons,
+        recommended_actions=recommended_actions,
+        feature_snapshot=snapshot,
+    )
+
+
+{'='*80}
+FILE: app\services\scoring.py
+{'='*80}
+
+from __future__ import annotations
+
+from app.schemas.data import FeatureSnapshot
+from app.schemas.ml import FactorExplanation
+
+
+def _clip(value: float, low: float, high: float) -> float:
+    return max(low, min(high, value))
+
+
+def _age_component(age: int | None) -> float:
+    if age is None:
+        return 0.7
+    if age <= 17:
+        return 1.0
+    if age <= 21:
+        return 0.92
+    if age <= 25:
+        return 0.82
+    if age <= 29:
+        return 0.68
+    return 0.55
+
+
+def _potential_level(score: float) -> str:
+    if score >= 80.0:
+        return "elite"
+    if score >= 60.0:
+        return "prometteur"
+    return "a_developper"
+
+
+def _risk_level(score: float) -> str:
+    if score < 0.33:
+        return "faible"
+    if score < 0.66:
+        return "moyen"
+    return "eleve"
+
+
+def compute_potential(features: FeatureSnapshot, age: int | None) -> tuple[float, str, list[FactorExplanation]]:
+    performance_component = _clip(features.performance_index / 100.0, 0.0, 1.0)
+    progression_component = _clip((features.performance_slope + 0.03) / 0.08, 0.0, 1.0)
+    age_component = _age_component(age)
+
+    discipline_component = features.attendance_ratio
+    discipline_component -= min(features.injury_days_avg / 30.0, 0.25)
+    discipline_component -= features.unpaid_ratio * 0.15
+    discipline_component = _clip(discipline_component, 0.0, 1.0)
+
+    weighted = {
+        "performance": (performance_component, 0.50),
+        "progression": (progression_component, 0.20),
+        "age": (age_component, 0.20),
+        "discipline": (discipline_component, 0.10),
+    }
+
+    score_100 = sum(raw * weight for raw, weight in weighted.values()) * 100.0
+
+    factors = [
+        FactorExplanation(
+            factor="Performance actuelle",
+            value=round(performance_component, 4),
+            weight=0.50,
+            contribution_points=round(performance_component * 0.50 * 100.0, 2),
+        ),
+        FactorExplanation(
+            factor="Dynamique recente",
+            value=round(progression_component, 4),
+            weight=0.20,
+            contribution_points=round(progression_component * 0.20 * 100.0, 2),
+        ),
+        FactorExplanation(
+            factor="Fenetre d'age",
+            value=round(age_component, 4),
+            weight=0.20,
+            contribution_points=round(age_component * 0.20 * 100.0, 2),
+        ),
+        FactorExplanation(
+            factor="Discipline et disponibilite",
+            value=round(discipline_component, 4),
+            weight=0.10,
+            contribution_points=round(discipline_component * 0.10 * 100.0, 2),
+        ),
+    ]
+
+    score_100 = round(_clip(score_100, 0.0, 100.0), 2)
+    return score_100, _potential_level(score_100), factors
+
+
+def evaluate_evolution(features: FeatureSnapshot) -> tuple[str, float, dict[str, float]]:
+    slope = features.performance_slope
+
+    if slope > 0.015:
+        trend_label = "progression"
+    elif slope < -0.015:
+        trend_label = "regression"
+    else:
+        trend_label = "stabilite"
+
+    confidence = 0.35
+    confidence += min(features.observations_count, 12) * 0.04
+    confidence += min(abs(slope) * 6.0, 0.25)
+    confidence -= min(features.rating_std / 10.0, 0.10)
+    confidence = round(_clip(confidence, 0.05, 0.99), 4)
+
+    details = {
+        "current_performance_index": round(features.performance_index, 4),
+        "volatility": round(features.rating_std, 4),
+        "attendance_ratio": round(features.attendance_ratio, 4),
+        "observations_count": float(features.observations_count),
+    }
+
+    return trend_label, confidence, details
+
+
+def predict_churn(features: FeatureSnapshot) -> tuple[float, str, list[str], list[str]]:
+    inactivity_risk = min(features.days_since_last_activity / 45.0, 1.0) * 0.35
+    attendance_risk = (1.0 - features.attendance_ratio) * 0.22
+    financial_risk = features.unpaid_ratio * 0.20
+    trend_risk = _clip((-features.performance_slope) / 0.05, 0.0, 1.0) * 0.13
+    injury_risk = min(features.injury_days_avg / 20.0, 1.0) * 0.10
+
+    risk_score = inactivity_risk + attendance_risk + financial_risk + trend_risk + injury_risk
+    risk_score = round(_clip(risk_score, 0.0, 1.0), 4)
+
+    probable_reasons: list[str] = []
+    if inactivity_risk > 0.10:
+        probable_reasons.append("Faible activite recente")
+    if attendance_risk > 0.08:
+        probable_reasons.append("Assiduite aux entrainements insuffisante")
+    if financial_risk > 0.08:
+        probable_reasons.append("Retards de paiement recurrents")
+    if trend_risk > 0.06:
+        probable_reasons.append("Baisse de performance sur les dernieres observations")
+    if injury_risk > 0.05:
+        probable_reasons.append("Impact des blessures sur la continuite sportive")
+
+    recommended_actions: list[str] = []
+    if inactivity_risk > 0.10:
+        recommended_actions.append("Planifier un entretien individuel sous 7 jours")
+    if attendance_risk > 0.08:
+        recommended_actions.append("Mettre en place un plan de suivi de presence hebdomadaire")
+    if financial_risk > 0.08:
+        recommended_actions.append("Proposer un echeancier de paiement avec le parent")
+    if trend_risk > 0.06:
+        recommended_actions.append("Adapter la charge de travail avec un programme de remise a niveau")
+    if injury_risk > 0.05:
+        recommended_actions.append("Coordonner un suivi medical et prevention blessures")
+
+    if not recommended_actions:
+        recommended_actions.append("Maintenir le suivi actuel et controler le risque chaque mois")
+
+    return risk_score, _risk_level(risk_score), probable_reasons, recommended_actions
+
+
+{'='*80}
+FILE: app\services\scouter_service.py
+{'='*80}
+
+from __future__ import annotations
+
+from datetime import datetime
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.db.models import PlayerProfile
+from app.schemas.scouter import (
+    CompareResponse,
+    ScouterPlayerCard,
+    SearchResponse,
+    ShortlistGenerateRequest,
+    ShortlistResponse,
+)
+from app.services.feature_engineering import build_feature_snapshot, get_player_by_external_id
+from app.services.scoring import compute_potential, evaluate_evolution, predict_churn
+
+
+def _build_card(db: Session, player: PlayerProfile) -> ScouterPlayerCard:
+    snapshot = build_feature_snapshot(db, player)
+    potential_score, _level, _factors = compute_potential(snapshot, player.age)
+    trend_label, _confidence, _details = evaluate_evolution(snapshot)
+    churn_risk, _risk_level, _reasons, _actions = predict_churn(snapshot)
+
+    return ScouterPlayerCard(
+        player_external_id=player.external_id,
+        full_name=player.full_name,
+        position=player.position,
+        age=player.age,
+        division_name=player.division_name,
+        potential_score=round(potential_score, 2),
+        churn_risk=round(churn_risk, 4),
+        trend_label=trend_label,
+        avg_rating=round(snapshot.avg_rating, 4),
+        goals_per_match=round(snapshot.goals_per_match, 4),
+        assists_per_match=round(snapshot.assists_per_match, 4),
+        attendance_ratio=round(snapshot.attendance_ratio, 4),
+    )
+
+
+def search_players(
+    db: Session,
+    q: str | None = None,
+    position: str | None = None,
+    age_min: int | None = None,
+    age_max: int | None = None,
+    min_potential: float | None = None,
+    max_churn: float | None = None,
+    trend_label: str | None = None,
+    min_avg_rating: float | None = None,
+    limit: int = 20,
+) -> SearchResponse:
+    players = list(db.scalars(select(PlayerProfile).order_by(PlayerProfile.full_name.asc())))
+
+    cards: list[ScouterPlayerCard] = []
+    q_norm = (q or "").strip().lower()
+    position_norm = (position or "").strip().lower()
+
+    for player in players:
+        card = _build_card(db, player)
+
+        if q_norm and q_norm not in card.full_name.lower():
+            continue
+        if position_norm and (card.position or "").lower() != position_norm:
+            continue
+        if age_min is not None and (card.age is None or card.age < age_min):
+            continue
+        if age_max is not None and (card.age is None or card.age > age_max):
+            continue
+        if min_potential is not None and card.potential_score < min_potential:
+            continue
+        if max_churn is not None and card.churn_risk > max_churn:
+            continue
+        if trend_label is not None and card.trend_label != trend_label:
+            continue
+        if min_avg_rating is not None and card.avg_rating < min_avg_rating:
+            continue
+
+        cards.append(card)
+
+    cards.sort(key=lambda card: (-card.potential_score, card.churn_risk, -card.avg_rating))
+    safe_limit = max(1, min(limit, 100))
+
+    return SearchResponse(total=len(cards), items=cards[:safe_limit])
+
+
+def compare_players(db: Session, player_external_ids: list[int]) -> CompareResponse:
+    cards: list[ScouterPlayerCard] = []
+    for external_id in player_external_ids:
+        player = get_player_by_external_id(db, external_id)
+        if player is None:
+            continue
+        cards.append(_build_card(db, player))
+
+    if len(cards) < 2:
+        raise ValueError("At least two valid players are required for comparison")
+
+    trend_rank = {"progression": 2, "stabilite": 1, "regression": 0}
+
+    best_potential = max(cards, key=lambda card: card.potential_score).player_external_id
+    lowest_churn = min(cards, key=lambda card: card.churn_risk).player_external_id
+    best_trend = max(cards, key=lambda card: trend_rank.get(card.trend_label, 0)).player_external_id
+
+    highlights = {
+        "best_potential": best_potential,
+        "lowest_churn": lowest_churn,
+        "best_trend": best_trend,
+    }
+
+    cards.sort(key=lambda card: card.player_external_id)
+    return CompareResponse(players=cards, highlights=highlights)
+
+
+def _strategy_score(card: ScouterPlayerCard, strategy: str) -> float:
+    progression_score = {"progression": 1.0, "stabilite": 0.55, "regression": 0.1}.get(card.trend_label, 0.5)
+    potential_norm = card.potential_score / 100.0
+    churn_stability = 1.0 - card.churn_risk
+
+    if strategy == "high_potential":
+        score = 0.80 * potential_norm + 0.20 * progression_score
+    elif strategy == "low_risk":
+        score = 0.65 * churn_stability + 0.25 * potential_norm + 0.10 * progression_score
+    elif strategy == "breakthrough":
+        score = 0.45 * potential_norm + 0.40 * progression_score + 0.15 * churn_stability
+    else:
+        score = 0.60 * potential_norm + 0.25 * churn_stability + 0.15 * progression_score
+
+    return round(score * 100.0, 4)
+
+
+def generate_shortlist(db: Session, request: ShortlistGenerateRequest) -> ShortlistResponse:
+    candidates = search_players(
+        db=db,
+        q=request.q,
+        position=request.position,
+        age_min=request.age_min,
+        age_max=request.age_max,
+        min_potential=request.min_potential,
+        max_churn=request.max_churn,
+        trend_label=request.trend_label,
+        min_avg_rating=request.min_avg_rating,
+        limit=100,
+    ).items
+
+    for card in candidates:
+        card.shortlist_score = _strategy_score(card, request.strategy)
+
+    ranked = sorted(candidates, key=lambda card: (-(card.shortlist_score or 0.0), -card.potential_score, card.churn_risk))
+    selected = ranked[: request.top_n]
+
+    return ShortlistResponse(
+        title=request.title,
+        strategy=request.strategy,
+        generated_at=datetime.utcnow(),
+        total=len(selected),
+        players=selected,
+    )
+
+
+{'='*80}
+FILE: app\services\__init__.py
+{'='*80}
+
+
+
+{'='*80}
+FILE: app\main.py
+{'='*80}
+
+import os
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.routes.data import router as data_router
+from app.api.routes.health import router as health_router
+from app.api.routes.ml import router as ml_router
+from app.api.routes.scouter import router as scouter_router
+from app.core.config import get_settings
+from app.db.init_db import create_all_tables
+
+settings = get_settings()
+
+
+app = FastAPI(
+    title=settings.app_name,
+    version="1.0.0",
+    description="FastAPI microservice for scouting intelligence and ML predictions.",
+)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.on_event("startup")
+def startup_event() -> None:
+    if settings.database_url.startswith("sqlite:///./"):
+        db_relative_path = settings.database_url.replace("sqlite:///./", "")
+        db_folder = os.path.dirname(db_relative_path)
+        if db_folder:
+            os.makedirs(db_folder, exist_ok=True)
+    create_all_tables()
+
+
+app.include_router(health_router)
+app.include_router(data_router, prefix=settings.api_v1_prefix)
+app.include_router(ml_router, prefix=settings.api_v1_prefix)
+app.include_router(scouter_router, prefix=settings.api_v1_prefix)
+
+
+@app.get("/")
+def root() -> dict[str, str]:
+    return {
+        "service": settings.app_name,
+        "env": settings.app_env,
+        "docs": "/docs",
+    }
+
+
+{'='*80}
+FILE: app\__init__.py
+{'='*80}
+
+
+
+{'='*80}
+FILE: tests\test_scoring.py
+{'='*80}
+
+from app.schemas.data import FeatureSnapshot
+from app.services.scoring import compute_potential, evaluate_evolution, predict_churn
+
+
+def test_potential_is_high_for_progressive_player() -> None:
+    features = FeatureSnapshot(
+        observations_count=8,
+        avg_rating=8.1,
+        rating_std=0.3,
+        goals_per_match=0.7,
+        assists_per_match=0.4,
+        performance_index=82.0,
+        performance_slope=0.03,
+        rating_slope=0.02,
+        attendance_ratio=0.94,
+        unpaid_ratio=0.0,
+        injury_days_avg=1.0,
+        days_since_last_activity=4,
+    )
+
+    score, level, _factors = compute_potential(features, age=18)
+
+    assert score >= 75.0
+    assert level in {"elite", "prometteur"}
+
+
+def test_evolution_detects_regression() -> None:
+    features = FeatureSnapshot(
+        observations_count=6,
+        avg_rating=6.2,
+        rating_std=0.7,
+        goals_per_match=0.2,
+        assists_per_match=0.1,
+        performance_index=52.0,
+        performance_slope=-0.03,
+        rating_slope=-0.02,
+        attendance_ratio=0.7,
+        unpaid_ratio=0.4,
+        injury_days_avg=6.0,
+        days_since_last_activity=18,
+    )
+
+    trend_label, confidence, _details = evaluate_evolution(features)
+
+    assert trend_label == "regression"
+    assert 0.0 <= confidence <= 1.0
+
+
+def test_churn_risk_is_high_for_inactive_player() -> None:
+    features = FeatureSnapshot(
+        observations_count=3,
+        avg_rating=5.8,
+        rating_std=1.1,
+        goals_per_match=0.0,
+        assists_per_match=0.0,
+        performance_index=39.0,
+        performance_slope=-0.04,
+        rating_slope=-0.03,
+        attendance_ratio=0.42,
+        unpaid_ratio=0.66,
+        injury_days_avg=12.0,
+        days_since_last_activity=62,
+    )
+
+    risk_score, risk_level, reasons, actions = predict_churn(features)
+
+    assert risk_score >= 0.66
+    assert risk_level == "eleve"
+    assert reasons
+    assert actions
+
+
+{'='*80}
+CONFIG: requirements.txt
+{'='*80}
+
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+sqlalchemy==2.0.41
+pydantic==2.11.3
+pydantic-settings==2.8.1
+httpx==0.27.2
+numpy==1.26.4
+scikit-learn==1.5.2
+python-dotenv==1.0.1
+jinja2==3.1.6
+python-multipart==0.0.20
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+pytest==8.3.5
+
+
+{'='*80}
+CONFIG: .env.example
+{'='*80}
+
+APP_NAME=scouting-ai-service
+APP_ENV=dev
+API_V1_PREFIX=/api/v1
+DATABASE_URL=sqlite:///./data/scouting.db
+FOOTBALL_BACKEND_BASE_URL=http://localhost:8091/football-academy
+FOOTBALL_BACKEND_BEARER_TOKEN=
+REQUEST_TIMEOUT_SECONDS=20
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8080
+
+# Admin Platform
+ADMIN_JWT_SECRET=change-me-use-a-long-random-secret-here
+
+# Email (for password reset) â€“ leave blank to disable email
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM=noreply@yourplatform.com
+
+
+{'='*80}
+CONFIG: docker-compose.yml
+{'='*80}
+
+version: "3.9"
+
+services:
+  scouting-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scouting_ai_service
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./data:/app/data
+
+  chatbot:
+    build:
+      context: ../chatbot/chatbot
+      dockerfile: Dockerfile
+    container_name: chatbot_service
+    restart: unless-stopped
+    ports:
+      - "8020:8020"
+    volumes:
+      - ../chatbot/chatbot/apps/chat/training_models/data:/app/apps/chat/training_models/data
+
+  admin-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile.admin
+    container_name: admin_platform
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ../chatbot/chatbot/apps/chat/training_models/data:/app/chatbot_data
+    depends_on:
+      - scouting-ai
+
+
+{'='*80}
+CONFIG: Dockerfile
+{'='*80}
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app ./app
+RUN mkdir -p /app/data
+
+EXPOSE 8010
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8010"]
+
+
+{'='*80}
+CONFIG: README.md
+{'='*80}
+
+# Scouting AI Service (FastAPI)
+
+Microservice FastAPI pour le scouting des joueurs avec IA.
+
+## Fonctionnalites couvertes
+
+- ML01: Score de potentiel sportif avec explications des facteurs.
+- ML02: Analyse de l'evolution sportive (progression, stabilite, regression).
+- ML03: Prediction du churn (risque d'abandon, raisons probables, actions recommandees).
+- SC01: Recherche avancee, comparaison des joueurs, generation de shortlists en lecture seule.
+- Data backend: endpoints pour alimenter les donnees ML (upsert players, observations, paiements, sync depuis Spring).
+
+## Structure
+
+- `app/main.py`: point d'entree FastAPI.
+- `app/api/routes`: routes REST (`health`, `data`, `ml`, `scouter`).
+- `app/services`: logique metier ML, feature engineering, sync backend.
+- `app/db`: modeles SQLAlchemy + session DB.
+- `tests`: tests unitaires de scoring IA.
+
+## Demarrage local
+
+1. Copier `.env.example` vers `.env`.
+2. Installer les dependances:
+
+```powershell
+pip install -r requirements.txt
+```
+
+3. Lancer l'API:
+
+```powershell
+uvicorn app.main:app --reload --port 8010
+```
+
+4. Ouvrir la doc:
+
+- Swagger: `http://localhost:8010/docs`
+- OpenAPI: `http://localhost:8010/openapi.json`
+
+## Sync avec football-academy
+
+Le endpoint `POST /api/v1/data/sync/football-academy` appelle:
+
+- `GET /football-academy/api/players`
+- `GET /football-academy/api/payments`
+
+Le base URL est configurable via `FOOTBALL_BACKEND_BASE_URL`.
+
+## Endpoints principaux
+
+- `POST /api/v1/data/players/upsert`
+- `POST /api/v1/data/observations/upsert`
+- `POST /api/v1/data/payments/upsert`
+- `GET /api/v1/data/features/{player_external_id}`
+- `POST /api/v1/data/sync/football-academy`
+- `GET /api/v1/ml/potential/{player_external_id}`
+- `GET /api/v1/ml/evolution/{player_external_id}`
+- `GET /api/v1/ml/churn/{player_external_id}`
+- `GET /api/v1/scouter/players/search`
+- `POST /api/v1/scouter/players/compare`
+- `POST /api/v1/scouter/shortlists/generate`
+
+## Exemples d'utilisation
+
+### 1) Alimenter les donnees players
+
+```http
+POST /api/v1/data/players/upsert
+Content-Type: application/json
+
+[
+	{
+		"external_id": 101,
+		"full_name": "Ali Ben Salah",
+		"position": "MID",
+		"age": 17,
+		"nationality": "TN",
+		"division_name": "U18",
+		"is_paid": true,
+		"goals": 6,
+		"assists": 9,
+		"matches": 14,
+		"average_rating": 7.4
+	}
+]
+```
+
+### 2) Alimenter les observations sportives
+
+```http
+POST /api/v1/data/observations/upsert
+Content-Type: application/json
+
+[
+	{
+		"player_external_id": 101,
+		"observed_on": "2026-04-16",
+		"goals": 1,
+		"assists": 1,
+		"matches_played": 1,
+		"average_rating": 7.8,
+		"training_attendance": 0.92,
+		"injury_days": 0
+	}
+]
+```
+
+### 3) ML01/ML02/ML03
+
+- `GET /api/v1/ml/potential/101`
+- `GET /api/v1/ml/evolution/101?window=8`
+- `GET /api/v1/ml/churn/101`
+
+### 4) SC01 recherche et shortlist
+
+- `GET /api/v1/scouter/players/search?position=MID&min_potential=65&max_churn=0.4&limit=20`
+
+```http
+POST /api/v1/scouter/shortlists/generate
+Content-Type: application/json
+
+{
+	"title": "Shortlist Inter-saison",
+	"strategy": "balanced",
+	"position": "MID",
+	"min_potential": 65,
+	"max_churn": 0.45,
+	"top_n": 10
+}
+```

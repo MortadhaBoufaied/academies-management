@@ -1,0 +1,82 @@
+\babel@toc {french}{}\relax 
+\thispagestyle {MyStyle}
+\addvspace {10\p@ }
+\contentsline {xchapter}{Chapitre 1: Etude préalable}{3}{chapter.1}%
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Logo Infobjectif}}{4}{figure.caption.7}%
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Organigramme de L'entreprise}}{5}{figure.caption.8}%
+\contentsline {figure}{\numberline {1.3}{\ignorespaces Schéma illustratif de la méthodologie SCRUM}}{10}{figure.caption.10}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 2: Architecture \centering logicielle et outils de travail}{12}{chapter.2}%
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Figure d'architecture du systéme}}{20}{figure.caption.11}%
+\contentsline {figure}{\numberline {2.2}{\ignorespaces Logo Lucidchart}}{21}{figure.caption.12}%
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Logo Figma}}{21}{figure.caption.13}%
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Logo Visual Studio Code}}{22}{figure.caption.14}%
+\contentsline {figure}{\numberline {2.5}{\ignorespaces Logo IntelliJ IDEA}}{22}{figure.caption.15}%
+\contentsline {figure}{\numberline {2.6}{\ignorespaces Logo Android Studio}}{22}{figure.caption.16}%
+\contentsline {figure}{\numberline {2.7}{\ignorespaces Logo Postman}}{23}{figure.caption.17}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 3 : Testing and Deployment}{24}{chapter.3}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 4 : Sprint 1 \centering "Gestion des Utilisateurs" }{27}{chapter.4}%
+\contentsline {figure}{\numberline {4.1}{\ignorespaces Figure du Diagramme de cas d'utilisation sprint 1}}{29}{figure.caption.19}%
+\contentsline {figure}{\numberline {4.2}{\ignorespaces Figure du Diagramme de sequence «s'inscrire» }}{32}{figure.caption.24}%
+\contentsline {figure}{\numberline {4.3}{\ignorespaces Figure du Diagramme de sequence « s'authentifier » }}{32}{figure.caption.25}%
+\contentsline {figure}{\numberline {4.4}{\ignorespaces Figure du Diagramme de sequence «Changer mot de passe» }}{33}{figure.caption.26}%
+\contentsline {figure}{\numberline {4.5}{\ignorespaces Figure du Diagramme de classes Sprint 1}}{34}{figure.caption.27}%
+\contentsline {figure}{\numberline {4.6}{\ignorespaces Interface Login mobile}}{35}{figure.caption.28}%
+\contentsline {figure}{\numberline {4.7}{\ignorespaces Interface Login web }}{35}{figure.caption.29}%
+\contentsline {figure}{\numberline {4.8}{\ignorespaces Les Interfaces du formulaire SignUp}}{36}{figure.caption.30}%
+\contentsline {figure}{\numberline {4.9}{\ignorespaces Interface modifier profile }}{37}{figure.caption.31}%
+\contentsline {figure}{\numberline {4.10}{\ignorespaces Interface changer mot passe }}{37}{figure.caption.32}%
+\contentsline {figure}{\numberline {4.11}{\ignorespaces Les interfaces de la page de mot de passe oublié}}{38}{figure.caption.33}%
+\contentsline {figure}{\numberline {4.12}{\ignorespaces Les interfaces du page profile}}{39}{figure.caption.34}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 5 : Sprint 2 " Gestion \centering des Universités Endroits et des Examens"}{41}{chapter.5}%
+\contentsline {figure}{\numberline {5.1}{\ignorespaces Figure du Diagramme de cas d'utilisation Sprint 2}}{43}{figure.caption.36}%
+\contentsline {figure}{\numberline {5.2}{\ignorespaces Figure du Diagramme de Séquence «Ajouter un Endorit» }}{45}{figure.caption.40}%
+\contentsline {figure}{\numberline {5.3}{\ignorespaces Figure du Diagramme de Séquence «Modifier un Endroit» }}{46}{figure.caption.41}%
+\contentsline {figure}{\numberline {5.4}{\ignorespaces Figure du Diagramme de Séquence «Supprimer un Endorit» }}{46}{figure.caption.42}%
+\contentsline {figure}{\numberline {5.5}{\ignorespaces Figure du Diagramme de classes de Sprint 2 }}{47}{figure.caption.43}%
+\contentsline {figure}{\numberline {5.6}{\ignorespaces Interface Tableau des universités }}{48}{figure.caption.44}%
+\contentsline {figure}{\numberline {5.7}{\ignorespaces Interfaces d'ajout des universités}}{49}{figure.caption.47}%
+\contentsline {figure}{\numberline {5.8}{\ignorespaces Interface de modification d'un endroit }}{50}{figure.caption.48}%
+\contentsline {figure}{\numberline {5.9}{\ignorespaces Interface de details d'un examen }}{50}{figure.caption.49}%
+\contentsline {figure}{\numberline {5.10}{\ignorespaces l'Interfaces d'endroit }}{51}{figure.caption.50}%
+\contentsline {figure}{\numberline {5.11}{\ignorespaces l'Interfaces du page profile }}{51}{figure.caption.51}%
+\contentsline {figure}{\numberline {5.12}{\ignorespaces Filtarage des examens}}{52}{figure.caption.52}%
+\contentsline {figure}{\numberline {5.13}{\ignorespaces List des exmanes }}{52}{figure.caption.52}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 6 :Sprint 3 " Gestion des \centering Transports ,Evénement et des Stages"}{53}{chapter.6}%
+\contentsline {figure}{\numberline {6.1}{\ignorespaces Figure du Diagramme de cas d'utilisation Sprint 3 }}{55}{figure.caption.54}%
+\contentsline {figure}{\numberline {6.2}{\ignorespaces Figure du Diagramme de séquence «Ajouter un stage» }}{57}{figure.caption.58}%
+\contentsline {figure}{\numberline {6.3}{\ignorespaces Diagramme de séquence «modifier un stage» }}{58}{figure.caption.59}%
+\contentsline {figure}{\numberline {6.4}{\ignorespaces Diagramme de séquence supprimer un stage }}{58}{figure.caption.60}%
+\contentsline {figure}{\numberline {6.5}{\ignorespaces Diagramme de classes Sprint 3}}{59}{figure.caption.61}%
+\contentsline {figure}{\numberline {6.6}{\ignorespaces Interface d'ajout d'un évenement}}{60}{figure.caption.62}%
+\contentsline {figure}{\numberline {6.7}{\ignorespaces Diagramme de classes publication et notification}}{60}{figure.caption.62}%
+\contentsline {figure}{\numberline {6.8}{\ignorespaces Interface de modification d'un stage}}{61}{figure.caption.63}%
+\contentsline {figure}{\numberline {6.9}{\ignorespaces Interface de supression d'un stage}}{61}{figure.caption.64}%
+\contentsline {figure}{\numberline {6.10}{\ignorespaces Interface d'un évenement dans la partie mobile}}{62}{figure.caption.65}%
+\contentsline {figure}{\numberline {6.11}{\ignorespaces Interface d'un stage dans la partie mobile}}{62}{figure.caption.66}%
+\contentsline {figure}{\numberline {6.12}{\ignorespaces Interface du moyen de transport dans la partie mobile}}{63}{figure.caption.67}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 7 : Sprint 4 "Gestion \centering des Publications et des Notifications"}{64}{chapter.7}%
+\contentsline {figure}{\numberline {7.1}{\ignorespaces Diagramme de cas d'utilisation Sprint 4 }}{67}{figure.caption.69}%
+\contentsline {figure}{\numberline {7.2}{\ignorespaces Diagramme de séquence créer une publication }}{69}{figure.caption.72}%
+\contentsline {figure}{\numberline {7.3}{\ignorespaces Diagramme de séquence «Créer une notification» }}{69}{figure.caption.73}%
+\contentsline {figure}{\numberline {7.4}{\ignorespaces Diagramme de classes Sprint 4}}{70}{figure.caption.74}%
+\contentsline {figure}{\numberline {7.5}{\ignorespaces Interface créer une publication}}{71}{figure.caption.75}%
+\contentsline {figure}{\numberline {7.6}{\ignorespaces Interface ajout d'un commentaire }}{71}{figure.caption.76}%
+\contentsline {figure}{\numberline {7.7}{\ignorespaces Interface page d'accueil partie mobile}}{72}{figure.caption.77}%
+\contentsline {figure}{\numberline {7.8}{\ignorespaces Interface Notification Partie Mobile}}{72}{figure.caption.78}%
+\contentsline {figure}{\numberline {7.9}{\ignorespaces Interface Notification personalisée }}{73}{figure.caption.79}%
+\addvspace {10\p@ }
+\contentsline {xchapter}{ Chapitre 8 : Sprint 5 "Recherche des données sur un Map, \centering Gestion des tableaux de bord et des Messageries"}{74}{chapter.8}%
+\contentsline {figure}{\numberline {8.1}{\ignorespaces Diagramme de cas d'utilisation Sprint 5 }}{76}{figure.caption.81}%
+\contentsline {figure}{\numberline {8.2}{\ignorespaces Diagramme de cas d'utilisation }}{77}{figure.caption.84}%
+\contentsline {figure}{\numberline {8.3}{\ignorespaces Diagramme de séquence <<Contacter admin>> }}{78}{figure.caption.85}%
+\contentsline {figure}{\numberline {8.4}{\ignorespaces Diagramme de classes sprint 5 }}{79}{figure.caption.86}%
+\contentsline {figure}{\numberline {8.5}{\ignorespaces Interface Contacter administrateur }}{80}{figure.caption.87}%
+\contentsline {figure}{\numberline {8.6}{\ignorespaces Interface Contacter un utilisateur }}{81}{figure.caption.89}%
+\contentsline {figure}{\numberline {8.7}{\ignorespaces Interace tableau de bord }}{81}{figure.caption.90}%
+\contentsline {figure}{\numberline {8.8}{\ignorespaces Interface carte map }}{82}{figure.caption.91}%

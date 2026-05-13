@@ -1,0 +1,44 @@
+\chapter{Introduction generale}
+
+\section{Contexte}
+
+Le besoin metier vise une plateforme unifiee pour une academie de football, couvrant:
+\begin{itemize}[leftmargin=*]
+  \item la gestion administrative et operationnelle (joueurs, entraineurs, activites, paiements, notifications);
+  \item l'experience utilisateur mobile (consultation, chat, profil, statistiques, recherche);
+  \item une interface web admin dediee;
+  \item un assistant conversationnel pour les questions frequentes des utilisateurs.
+\end{itemize}
+
+Cette combinaison impose une architecture multi-projets avec interconnexion claire, separation des responsabilites et securisation des acces.
+
+\section{Problematique}
+
+Les principales questions techniques traitees dans ce rapport sont:
+\begin{itemize}[leftmargin=*]
+  \item comment organiser le backend pour supporter a la fois API REST, temps reel et controle d'acces par roles;
+  \item comment structurer un frontend Flutter qui sert mobile et web admin sans duplication inutile;
+  \item comment integrer un chatbot local independant et interopere avec l'application mobile;
+  \item comment preparer un deploiement robuste et evolutif.
+\end{itemize}
+
+\section{Demarche}
+
+La demarche retenue est basee sur l'analyse documentaire et du code existant:
+\begin{itemize}[leftmargin=*]
+  \item extraction des technologies, configurations et flux depuis les fichiers de configuration et README;
+  \item cartographie des routes, couches logicielles et dependances;
+  \item consolidation en chapitres exploitables pour un rapport academique.
+\end{itemize}
+
+\section{Structure du rapport}
+
+Le rapport est organise en chapitres progressifs:
+\begin{enumerate}[leftmargin=*]
+  \item sources documentaires exploitees;
+  \item architecture globale de la solution;
+  \item etude du backend;
+  \item etude du frontend;
+  \item etude du chatbot;
+  \item integration, deploiement, qualite et perspectives.
+\end{enumerate}
