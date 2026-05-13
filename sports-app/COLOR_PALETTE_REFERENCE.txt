@@ -1,0 +1,265 @@
+🎨 COLOR PALETTE VISUAL REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+PRIMARY PALETTE
+───────────────────────────────────────────────────────────────────────────────
+
+    Teal              Teal Dark         Teal Light
+    #009688           #00796B           #4DB6AC
+    ███████████████   ███████████████   ███████████████
+    AppColors         AppColors         AppColors
+    .primaryTeal      .primaryTealDark  .primaryTealLight
+
+
+    Orange            Violet            Blue
+    #FF9800           #7C3AED           #2563EB
+    ███████████████   ███████████████   ███████████████
+    AppColors         AppColors         AppColors
+    .secondaryOrange  .secondaryViolet  .secondaryElectricBlue
+
+
+    Pitch Green       Lime              Dark Teal
+    #0E7C66           #63E6A6           #008577
+    ███████████████   ███████████████   ███████████████
+    AppColors         AppColors         AppColors
+    .accentPitch      .accentLime       .tealVariant
+
+
+SEMANTIC COLORS (Status & Feedback)
+───────────────────────────────────────────────────────────────────────────────
+
+    SUCCESS           WARNING           ERROR
+    #22C55E           #F59E0B           #FF6B6B
+    ███████████████   ███████████████   ███████████████
+    AppColors         AppColors         AppColors
+    .successGreen     .warningAmber      .errorRed
+    
+    Use for: Paid,    Use for: Pending, Use for: Failed,
+    Completed,        Caution,          Error,
+    Active, Good      In Progress       Cancelled, Poor
+
+
+    INFO              PENDING
+    #3B82F6           #6B7280
+    ███████████████   ███████████████
+    AppColors         AppColors
+    .infoBlue         .pendingGray
+    
+    Use for: Info,    Use for: Neutral,
+    Scheduled,        Disabled,
+    Upcoming          Default
+
+
+BACKGROUND COLORS (Light Mode)
+───────────────────────────────────────────────────────────────────────────────
+
+    Light BG          Pure White        Light Secondary   Light Tertiary
+    #F6F8FB           #FFFFFF           #F0F5F4           #E8F5F3
+    ███████████████   ███████████████   ███████████████   ███████████████
+    AppColors         AppColors         AppColors         AppColors
+    .bgLight          .bgLightPure      .bgLightSecondary .bgLightTertiary
+
+
+BACKGROUND COLORS (Dark Mode)
+───────────────────────────────────────────────────────────────────────────────
+
+    Dark BG           Dark Secondary    Dark Tertiary     Card BG
+    #1A2335           #222A3A           #2B3544           #1F2936
+    ███████████████   ███████████████   ███████████████   ███████████████
+    AppColors         AppColors         AppColors         AppColors
+    .bgDark           .bgDarkSecondary  .bgDarkTertiary   .bgDarkCard
+
+
+TEXT COLORS (Light Mode)
+───────────────────────────────────────────────────────────────────────────────
+
+    Dark Text         Dark Secondary    Dark Tertiary     Disabled
+    #152724           #4B5966           #7A8BA8           #9CA3AF
+    ███████████████   ███████████████   ███████████████   ███████████████
+    AppColors         AppColors         AppColors         AppColors
+    .textDark         .textDarkSecondary.textDarkTertiary .textDisabled
+
+
+TEXT COLORS (Dark Mode)
+───────────────────────────────────────────────────────────────────────────────
+
+    Light Text        Light Secondary   Light Tertiary    Disabled
+    #F6F8FB           #D5DCE5           #A8B3BE           #6B7280
+    ███████████████   ███████████████   ███████████████   ███████████████
+    AppColors         AppColors         AppColors         AppColors
+    .textLight        .textLightSecondary.textLightTertiary.textDisabled
+
+
+SCREEN-SPECIFIC THEMES
+═══════════════════════════════════════════════════════════════════════════════
+
+🏠 HOME SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #009688 Teal              AppColors.homePrimary                 │
+│ Secondary: #FF9800 Orange            AppColors.homeSecondary               │
+│ Accent:    #63E6A6 Lime              AppColors.homeAccent                  │
+│ Card BG:   #E8F5F3 Teal Light        AppColors.homeCardBg                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+👥 PLAYER MANAGEMENT SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #009688 Teal              AppColors.playerPrimary               │
+│ Secondary: #2563EB Blue              AppColors.playerSecondary             │
+│ Accent:    #27AE60 Green             AppColors.playerAccent                │
+│ Card BG:   #E8F5F3 Teal Light        AppColors.playerCardBg                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+🔍 SCOUTING REPORTS SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #7C3AED Violet            AppColors.scoutingPrimary             │
+│ Secondary: #2563EB Blue              AppColors.scoutingSecondary           │
+│ Accent:    #63E6A6 Lime              AppColors.scoutingAccent              │
+│ Card BG:   #F3E5FF Light Violet      AppColors.scoutingCardBg              │
+│                                                                             │
+│ Status Colors:                                                              │
+│ ✓ Excellent: #22C55E Green           AppColors.scoutingExcellent           │
+│ ○ Good:      #3B82F6 Blue            AppColors.scoutingGood                │
+│ • Average:   #F59E0B Orange          AppColors.scoutingAverage             │
+│ ✗ Poor:      #FF6B6B Red             AppColors.scoutingPoor                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+🏋️ TRAINING SESSIONS SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #0E7C66 Pitch Green       AppColors.trainingPrimary             │
+│ Secondary: #FF9800 Orange            AppColors.trainingSecondary           │
+│ Accent:    #63E6A6 Lime              AppColors.trainingAccent              │
+│                                                                             │
+│ Status Colors:                                                              │
+│ ⚡ Active:     #22C55E Green          AppColors.trainingActive              │
+│ ○ Scheduled:   #3B82F6 Blue          AppColors.trainingScheduled           │
+│ ✓ Completed:   #4DB6AC Teal Light    AppColors.trainingCompleted           │
+│ ✗ Cancelled:   #FF6B6B Red           AppColors.trainingCancelled           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+⚽ MATCH RESULTS SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #FF9800 Orange            AppColors.matchPrimary                │
+│ Secondary: #009688 Teal              AppColors.matchSecondary              │
+│ Accent:    #2563EB Blue              AppColors.matchAccent                 │
+│                                                                             │
+│ Status Colors:                                                              │
+│ ○ Upcoming:    #3B82F6 Blue          AppColors.matchUpcoming               │
+│ 🔴 Live:       #FF6B6B Red           AppColors.matchLive                   │
+│ ✓ Completed:   #22C55E Green         AppColors.matchCompleted              │
+│ ✗ Cancelled:   #6B7280 Gray          AppColors.matchCancelled              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+💰 PAYMENT SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #22C55E Green             AppColors.paymentPrimary              │
+│ Secondary: #FF9800 Orange            AppColors.paymentSecondary            │
+│ Accent:    #2563EB Blue              AppColors.paymentAccent               │
+│                                                                             │
+│ Status Colors:                                                              │
+│ ✓ Paid:       #22C55E Green          AppColors.paymentPaid                 │
+│ ⏳ Pending:    #F59E0B Orange         AppColors.paymentPending              │
+│ ✗ Failed:     #FF6B6B Red            AppColors.paymentFailed               │
+│ ⚠ Due:        #F59E0B Orange         AppColors.paymentDue                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+⚙️ ADMIN PANEL SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #009688 Teal              AppColors.adminPrimary                │
+│ Secondary: #2563EB Blue              AppColors.adminSecondary              │
+│ Accent:    #7C3AED Violet            AppColors.adminAccent                 │
+│                                                                             │
+│ Stat Colors (for charts):                                                   │
+│ 👥 Players:     #14B8A6 Teal         AppColors.adminStatPlayers            │
+│ 📊 Divisions:   #F59E0B Orange       AppColors.adminStatDivisions          │
+│ 📅 Activities:  #3B82F6 Blue         AppColors.adminStatActivities         │
+│ 💵 Payments:    #22C55E Green        AppColors.adminStatPayments           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+👤 PROFILE SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #009688 Teal              AppColors.profilePrimary              │
+│ Secondary: #7C3AED Violet            AppColors.profileSecondary            │
+│ Accent:    #FF9800 Orange            AppColors.profileAccent               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+💬 CHAT & MESSAGING SCREEN
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Primary:   #009688 Teal              AppColors.chatPrimary                 │
+│ Secondary: #7C3AED Violet            AppColors.chatSecondary               │
+│ Accent:    #2563EB Blue              AppColors.chatAccent                  │
+│                                                                             │
+│ Message Bubbles:                                                            │
+│ 💬 Sent:       #009688 Teal          AppColors.chatBubbleSent              │
+│   Text:        #FFFFFF White         AppColors.chatBubbleSentText          │
+│                                                                             │
+│ 💬 Received:   #F0F5F4 Light Gray    AppColors.chatBubbleReceived          │
+│   Text:        #152724 Dark          AppColors.chatBubbleText              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+USAGE PATTERNS
+═══════════════════════════════════════════════════════════════════════════════
+
+PATTERN 1: Card Background
+┌─────────────────────────────┐
+│  Primary Color (Screen)     │  Top bar / Header
+├─────────────────────────────┤
+│  Light Background           │  Card body (uses tinted version)
+│  - Title: Primary color     │
+│  - Subtitle: Secondary text │
+│  - Value: Accent color      │
+│  - Status: Semantic color   │
+└─────────────────────────────┘
+
+PATTERN 2: Status Badge
+┌──────────────────┐
+│ Status Color     │  Background
+├──────────────────┤
+│ White text       │  Text
+│ Bold weight      │  Font style
+└──────────────────┘
+
+PATTERN 3: Message Bubble (Chat)
+┌──────────────────────┐
+│ Sent (Brand Teal)    │  My messages
+│ White text           │
+├──────────────────────┤
+│ Received (Gray)      │  Other's messages
+│ Dark text            │
+└──────────────────────┘
+
+PATTERN 4: Progress / Stepper
+■■■■■□□□□□  (Completed: Primary color, Pending: Gray)
+
+PATTERN 5: Charts
+Line 1: Teal
+Line 2: Orange
+Line 3: Blue
+Line 4: Green
+Line 5: Violet
+
+
+QUICK ACCESS TABLE
+═══════════════════════════════════════════════════════════════════════════════
+
+Color               Hex Code   AppColors Reference
+─────────────────────────────────────────────────────────────────────────────
+TEAL (Primary)      #009688    AppColors.primaryTeal
+TEAL Dark           #00796B    AppColors.primaryTealDark
+TEAL Light          #4DB6AC    AppColors.primaryTealLight
+ORANGE (Secondary)  #FF9800    AppColors.secondaryOrange
+VIOLET              #7C3AED    AppColors.secondaryViolet
+BLUE                #2563EB    AppColors.secondaryElectricBlue
+PITCH GREEN         #0E7C66    AppColors.accentPitch
+LIME (Accent)       #63E6A6    AppColors.accentLime
+SUCCESS GREEN       #22C55E    AppColors.successGreen
+WARNING ORANGE      #F59E0B    AppColors.warningAmber
+ERROR RED           #FF6B6B    AppColors.errorRed
+INFO BLUE           #3B82F6    AppColors.infoBlue
+PENDING GRAY        #6B7280    AppColors.pendingGray
+
+═══════════════════════════════════════════════════════════════════════════════
+
+PRINT THIS PAGE & HANG IT ABOVE YOUR DESK! 🎨
+
+═══════════════════════════════════════════════════════════════════════════════

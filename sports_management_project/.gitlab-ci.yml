@@ -1,0 +1,89 @@
+# =====================================================
+# GitLab CI/CD for Spring Boot + Docker + Render
+# Branch strategy:
+#   - dev  -> build/test, build & push image (staging)
+#   - main -> build/test, build & push image (production)
+# =====================================================
+
+stages:
+  - test
+  - build
+  - docker
+
+# -------------------------
+# Global variables
+# -------------------------
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+  DOCKER_TLS_CERTDIR: ""  # docker:dind without TLS
+  DOCKER_DRIVER: overlay2
+  # Image tags
+  IMAGE_SHA: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+  IMAGE_BRANCH: "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+
+cache:
+  key: maven
+  paths:
+    - .m2/repository
+
+# =====================================================
+# TEST (dev + main)
+# =====================================================
+test:
+  stage: test
+  image: maven:3.9.6-eclipse-temurin-17
+  script:
+    - mvn -q -B clean test
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# =====================================================
+# BUILD JAR (dev + main)
+# =====================================================
+build:
+  stage: build
+  image: maven:3.9.6-eclipse-temurin-17
+  script:
+    - mvn -q -B clean package -DskipTests
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1h
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  needs: ["test"]
+
+# =====================================================
+# BUILD & PUSH DOCKER IMAGE (for Render)
+# =====================================================
+docker-build:
+  stage: docker
+  image: docker:25.0
+  services:
+    - name: docker:25.0-dind
+      command: ["--tls=false"]
+  before_script:
+    # Login to GitLab Container Registry
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    # Build Docker image
+    - docker build -t "$IMAGE_SHA" .
+    - docker tag "$IMAGE_SHA" "$IMAGE_BRANCH"
+    # On main, also tag as latest
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        docker tag "$IMAGE_SHA" "$CI_REGISTRY_IMAGE:latest"
+      fi
+    # Push all tags
+    - docker push "$IMAGE_SHA"
+    - docker push "$IMAGE_BRANCH"
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        docker push "$CI_REGISTRY_IMAGE:latest"
+      fi
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  needs: ["build"]

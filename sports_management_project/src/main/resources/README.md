@@ -1,0 +1,1 @@
+# AgriAssets Exact Design + Data Management Update  Run:  ```bash python -m http.server 8080 ```  Open `http://localhost:8080`.  ## Main update  Users, Payments, Divisions and Activities are now grouped under one sidebar item: **Data Management**.  ## Validation  - Iterations: 20 - Final issue count: 0

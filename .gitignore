@@ -1,0 +1,17 @@
+# Ignore sensitive service account files and temporary dumps
+chatbot/AutoMl/automl_app/chatbot-eddb6-firebase-adminsdk-fbsvc-f7373bcd72.json
+chatbot/chatbot/chatbot.txt
+
+# Ignore local Python environment files
+*.pyc
+__pycache__/
+
+# Ignore generated Flutter build files
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.idea/*
+**/.vscode/*
+**/pubspec.lock

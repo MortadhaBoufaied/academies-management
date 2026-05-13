@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/assets/css/admin-complete.css}" href="/assets/css/admin-complete.css">
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 font-['Public_Sans'] antialiased">
+  <div class="min-h-screen">
+    <div th:replace="pages/modules/components/sidebar :: sidebar('dashboard')"></div>
+
+    <div class="min-h-screen lg:pl-72">
+      <div th:replace="pages/modules/components/navbar :: navbar('Home')"></div>
+
+      <main class="px-4 py-6 sm:px-6 lg:px-8">
+        <section class="rounded-3xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 p-8 text-white shadow-xl">
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-100">Football Academy</p>
+          <h2 class="mt-3 text-3xl font-black">Home</h2>
+          <p class="mt-3 text-sm text-emerald-50">Your academy overview and scouting highlights.</p>
+        </section>
+
+        <section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">Metric 1</p>
+            <p class="mt-3 text-3xl font-black text-slate-900">128</p>
+            <p class="mt-2 text-xs text-slate-500">Live workspace widget</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">Metric 2</p>
+            <p class="mt-3 text-3xl font-black text-slate-900">94</p>
+            <p class="mt-2 text-xs text-slate-500">Live workspace widget</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">Metric 3</p>
+            <p class="mt-3 text-3xl font-black text-slate-900">18</p>
+            <p class="mt-2 text-xs text-slate-500">Live workspace widget</p>
+          </article>
+          <article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">Metric 4</p>
+            <p class="mt-3 text-3xl font-black text-slate-900">7</p>
+            <p class="mt-2 text-xs text-slate-500">Live workspace widget</p>
+          </article>
+        </section>
+
+        <section th:if="${topPlayers != null and not #lists.isEmpty(topPlayers)}"
+                 class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.35em] text-slate-400">Scouting</p>
+              <h3 class="mt-1 text-lg font-black text-slate-900">Top Players</h3>
+            </div>
+            <a th:href="@{/admin/view/players}" class="text-sm font-semibold text-emerald-600 hover:underline">View all</a>
+          </div>
+
+          <div class="mt-5 flex gap-3 overflow-x-auto pb-2">
+            <a th:each="p : ${topPlayers}"
+               th:href="@{/admin/view/players/{id}(id=${p.id})}"
+               class="min-w-[260px] max-w-[260px] shrink-0 rounded-3xl border border-slate-200 bg-slate-50 p-4 transition hover:border-emerald-200 hover:bg-white">
+
+              <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-100 text-sm font-black text-emerald-700 ring-2 ring-white">
+                  <img th:if="${p.imageUrl}" th:src="${p.imageUrl}" alt="" class="h-full w-full object-cover">
+                  <span th:unless="${p.imageUrl}"
+                        th:text="${p.fullName != null ? #strings.substring(p.fullName,0,1).toUpperCase() : 'P'}">P</span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-black text-slate-900" th:text="${p.fullName ?: 'Player'}">Player</p>
+                  <p class="mt-0.5 truncate text-xs text-slate-500">
+                    <span th:text="${p.divisionName ?: (p.position ?: '-')}">-</span>
+                    <span th:if="${p.age != null}" th:text="${'  •  ' + p.age + 'y'}"> • 0y</span>
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                <span class="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-slate-700 ring-1 ring-slate-200"
+                      th:text="${'Rating ' + (p.averageRating != null ? #numbers.formatDecimal(p.averageRating,1,1) : '-') }">Rating -</span>
+                <span th:if="${p.potentialScore != null}"
+                      class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-black text-emerald-800"
+                      th:text="${'Potential ' + #numbers.formatDecimal(p.potentialScore,1,0)}">Potential</span>
+                <span th:if="${p.trendLabel != null}"
+                      class="rounded-full px-2.5 py-1 text-xs font-black"
+                      th:classappend="${p.trendLabel == 'progression'} ? ' bg-emerald-100 text-emerald-800' : (${p.trendLabel == 'regression'} ? ' bg-red-100 text-red-800' : ' bg-blue-100 text-blue-800')"
+                      th:text="${p.trendLabel}">trend</span>
+              </div>
+
+              <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+                <div class="rounded-2xl bg-white px-2 py-2 ring-1 ring-slate-200">
+                  <p class="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Goals</p>
+                  <p class="mt-1 text-sm font-black text-slate-900" th:text="${p.goals != null ? p.goals : 0}">0</p>
+                </div>
+                <div class="rounded-2xl bg-white px-2 py-2 ring-1 ring-slate-200">
+                  <p class="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Assists</p>
+                  <p class="mt-1 text-sm font-black text-slate-900" th:text="${p.assists != null ? p.assists : 0}">0</p>
+                </div>
+                <div class="rounded-2xl bg-white px-2 py-2 ring-1 ring-slate-200">
+                  <p class="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Matches</p>
+                  <p class="mt-1 text-sm font-black text-slate-900" th:text="${p.matches != null ? p.matches : 0}">0</p>
+                </div>
+              </div>
+            </a>
+          </div>
+        </section>
+
+        <section class="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="text-xl font-black text-slate-900">Operations Board</h3>
+          <p class="mt-2 text-sm text-slate-600">Use these links to verify navigation across all modules.</p>
+          <div class="mt-6 flex flex-wrap gap-2">
+            <a th:href="@{/admin/view/dashboard}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Dashboard</a>
+            <a th:href="@{/admin/view/users}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Users</a>
+            <a th:href="@{/admin/view/players}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Players</a>
+            <a th:href="@{/admin/view/trainers}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Trainers</a>
+            <a th:href="@{/admin/view/parents}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Parents</a>
+            <a th:href="@{/admin/view/divisions}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Divisions</a>
+            <a th:href="@{/admin/view/activities}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Activities</a>
+            <a th:href="@{/admin/view/payments}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Payments</a>
+            <a th:href="@{/admin/view/notifications}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Notifications</a>
+            <a th:href="@{/reports/view/index}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Reports</a>
+            <a th:href="@{/settings/view/academy}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Settings</a>
+            <a th:href="@{/profile/view/index}" class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Profile</a>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

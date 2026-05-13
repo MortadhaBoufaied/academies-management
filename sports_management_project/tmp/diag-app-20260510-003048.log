@@ -1,0 +1,47 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+2026-05-10T00:30:49.866+01:00  INFO 22252 --- [football-academy] [           main] c.f.FootballAcademyApplication           : Starting FootballAcademyApplication v0.0.1-SNAPSHOT using Java 17.0.8 with PID 22252 (D:\master_pfe\sports_management_project\target\football-academy-0.0.1-SNAPSHOT.jar started by boufa in D:\master_pfe\sports_management_project)
+2026-05-10T00:30:49.871+01:00  INFO 22252 --- [football-academy] [           main] c.f.FootballAcademyApplication           : No active profile set, falling back to 1 default profile: "default"
+2026-05-10T00:30:49.872+01:00 DEBUG 22252 --- [football-academy] [           main] o.s.boot.SpringApplication               : Loading source class com.footballacademy.FootballAcademyApplication
+2026-05-10T00:30:50.358+01:00 DEBUG 22252 --- [football-academy] [           main] ConfigServletWebServerApplicationContext : Refreshing org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@51549490
+2026-05-10T00:30:50.957+01:00 DEBUG 22252 --- [football-academy] [           main] ySourcesPropertyResolver$DefaultResolver : Found key 'DB_URL' in PropertySource 'systemEnvironment' with value of type String
+2026-05-10T00:30:51.387+01:00  INFO 22252 --- [football-academy] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-10T00:30:51.405+01:00 DEBUG 22252 --- [football-academy] [           main] o.s.b.a.AutoConfigurationPackages        : @EnableAutoConfiguration was declared on a class in the package 'com.footballacademy'. Automatic @Repository and @Entity scanning is enabled.
+2026-05-10T00:30:51.507+01:00  INFO 22252 --- [football-academy] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 111 ms. Found 27 JPA repository interfaces.
+2026-05-10T00:30:53.258+01:00 DEBUG 22252 --- [football-academy] [           main] .s.b.w.e.t.TomcatServletWebServerFactory : Code archive: D:\master_pfe\sports_management_project\target\football-academy-0.0.1-SNAPSHOT.jar
+2026-05-10T00:30:53.260+01:00 DEBUG 22252 --- [football-academy] [           main] .s.b.w.e.t.TomcatServletWebServerFactory : Code archive: D:\master_pfe\sports_management_project\target\football-academy-0.0.1-SNAPSHOT.jar
+2026-05-10T00:30:53.261+01:00 DEBUG 22252 --- [football-academy] [           main] .s.b.w.e.t.TomcatServletWebServerFactory : None of the document roots [src/main/webapp, public, static] point to a directory and will be ignored.
+2026-05-10T00:30:53.317+01:00  INFO 22252 --- [football-academy] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8091 (http)
+2026-05-10T00:30:53.351+01:00  INFO 22252 --- [football-academy] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-10T00:30:53.352+01:00  INFO 22252 --- [football-academy] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.19]
+2026-05-10T00:30:53.466+01:00  INFO 22252 --- [football-academy] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-10T00:30:53.468+01:00 DEBUG 22252 --- [football-academy] [           main] w.s.c.ServletWebServerApplicationContext : Published root WebApplicationContext as ServletContext attribute with name [org.springframework.web.context.WebApplicationContext.ROOT]
+2026-05-10T00:30:53.470+01:00  INFO 22252 --- [football-academy] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3110 ms
+2026-05-10T00:30:53.632+01:00 DEBUG 22252 --- [football-academy] [           main] ySourcesPropertyResolver$DefaultResolver : Found key 'DB_PASS' in PropertySource 'env' with value of type String
+2026-05-10T00:30:53.633+01:00 DEBUG 22252 --- [football-academy] [           main] ySourcesPropertyResolver$DefaultResolver : Found key 'DB_URL' in PropertySource 'systemEnvironment' with value of type String
+2026-05-10T00:30:53.634+01:00 DEBUG 22252 --- [football-academy] [           main] ySourcesPropertyResolver$DefaultResolver : Found key 'DB_USER' in PropertySource 'systemEnvironment' with value of type String
+2026-05-10T00:30:54.085+01:00  INFO 22252 --- [football-academy] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-10T00:30:54.350+01:00  INFO 22252 --- [football-academy] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-05-10T00:30:54.446+01:00  INFO 22252 --- [football-academy] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-10T00:30:54.673+01:00  INFO 22252 --- [football-academy] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-10T00:30:54.695+01:00  INFO 22252 --- [football-academy] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-10T00:30:54.822+01:00  INFO 22252 --- [football-academy] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@4fce3ed7
+2026-05-10T00:30:54.825+01:00  INFO 22252 --- [football-academy] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-10T00:30:54.851+01:00  WARN 22252 --- [football-academy] [           main] org.hibernate.dialect.Dialect            : HHH000511: The 5.5.0 version for [org.hibernate.dialect.MySQLDialect] is no longer supported, hence certain features may not work properly. The minimum supported version is 8.0.0. Check the community dialects project for available legacy versions.
+2026-05-10T00:30:54.855+01:00  WARN 22252 --- [football-academy] [           main] org.hibernate.orm.deprecation            : HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-05-10T00:30:56.272+01:00  INFO 22252 --- [football-academy] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-10T00:30:56.275+01:00  INFO 22252 --- [football-academy] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-10T00:30:57.115+01:00  INFO 22252 --- [football-academy] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-10T00:30:57.850+01:00 DEBUG 22252 --- [football-academy] [           main] o.s.b.w.s.ServletContextInitializerBeans : Mapping filters: springSecurityFilterChain urls=[/*] order=-100, characterEncodingFilter urls=[/*] order=-2147483648, formContentFilter urls=[/*] order=-9900, requestContextFilter urls=[/*] order=-105, jwtAuthenticationFilter urls=[/*] order=2147483647, securityHeadersFilter urls=[/*] order=2147483647
+2026-05-10T00:30:57.851+01:00 DEBUG 22252 --- [football-academy] [           main] o.s.b.w.s.ServletContextInitializerBeans : Mapping servlets: dispatcherServlet urls=[/]
+2026-05-10T00:30:57.913+01:00 DEBUG 22252 --- [football-academy] [           main] o.s.b.w.s.f.OrderedRequestContextFilter  : Filter 'requestContextFilter' configured for use
+2026-05-10T00:30:57.919+01:00 DEBUG 22252 --- [football-academy] [           main] s.b.w.s.f.OrderedCharacterEncodingFilter : Filter 'characterEncodingFilter' configured for use
+2026-05-10T00:30:57.919+01:00 DEBUG 22252 --- [football-academy] [           main] .DelegatingFilterProxyRegistrationBean$1 : Filter 'springSecurityFilterChain' configured for use
+2026-05-10T00:30:57.920+01:00 DEBUG 22252 --- [football-academy] [           main] o.s.b.w.s.f.OrderedFormContentFilter     : Filter 'formContentFilter' configured for use
