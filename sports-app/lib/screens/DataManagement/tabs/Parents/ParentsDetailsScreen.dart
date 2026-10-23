@@ -1,3 +1,4 @@
+import '../../../../config/api_config.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../components/app_background.dart';
@@ -235,15 +236,26 @@ class _ParentDetailsScreenState extends State<ParentDetailsScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: AppTheme.teal.withOpacity(0.15),
-          child: Text(
-            _initial(name),
-            style: const TextStyle(
-              color: AppTheme.teal,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
+        leading: Builder(
+          builder: (_) {
+            final rawImg = c.imageUrl;
+            final avatarUrl = (rawImg != null && rawImg.isNotEmpty)
+                ? (rawImg.startsWith('http') ? rawImg : '${ApiConfig.publicBaseUrl}/files/$rawImg')
+                : null;
+            return CircleAvatar(
+              backgroundColor: AppTheme.teal.withOpacity(0.15),
+              backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+              child: avatarUrl == null
+                  ? Text(
+                      _initial(name),
+                      style: const TextStyle(
+                        color: AppTheme.teal,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    )
+                  : null,
+            );
+          },
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.w900)),
         subtitle: subtitle.isEmpty ? null : Text(subtitle),

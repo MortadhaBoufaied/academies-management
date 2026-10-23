@@ -519,16 +519,27 @@ class _RoleHomeDashboardState extends State<RoleHomeDashboard> {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: cs.primary.withOpacity(0.12),
-                  child: Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : '?',
-                    style: TextStyle(
-                      color: cs.primary,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
+                Builder(
+                  builder: (_) {
+                    final rawImg = (c['imageUrl'] ?? c['image'] ?? c['photo'])?.toString();
+                    final avatarUrl = (rawImg != null && rawImg.isNotEmpty)
+                        ? (rawImg.startsWith('http') ? rawImg : '${ApiConfig.publicBaseUrl}/files/$rawImg')
+                        : null;
+                    return CircleAvatar(
+                      radius: 22,
+                      backgroundColor: cs.primary.withOpacity(0.14),
+                      backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                      child: avatarUrl == null
+                          ? Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : '?',
+                              style: TextStyle(
+                                color: cs.primary,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            )
+                          : null,
+                    );
+                  },
                 ),
                 const SizedBox(width: 10),
 
@@ -710,14 +721,24 @@ class _RoleHomeDashboardState extends State<RoleHomeDashboard> {
                 icon: Icon(
                   q.icon,
                   size: 17,
+                  color: cs.primary,
                 ),
                 label: Text(
                   q.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                  ),
                 ),
                 style: OutlinedButton.styleFrom(
+                  foregroundColor: cs.onSurface,
+                  backgroundColor: cs.surface.withOpacity(0.85),
+                  side: BorderSide(
+                    color: cs.outlineVariant.withOpacity(0.55),
+                  ),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   alignment: Alignment.centerLeft,
                   shape: RoundedRectangleBorder(

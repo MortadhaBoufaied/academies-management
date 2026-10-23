@@ -38,37 +38,59 @@ class _SignupScreenState extends State<SignupScreen> {
   Future<void> _doSignup() async {
     setState(() => _error = null);
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _loading = true);
-    try {
-      final ok = await _authController.signup(
-        nom: _nameCtl.text.trim(),
-        email: _emailCtl.text.trim(),
-        password: _passwordCtl.text,
-        mainRole: _selectedRole,
-        extra: {'nom': _nameCtl.text.trim()},
-      );
 
-      if (!ok) {
-        setState(() => _error = 'Unable to create account. Please try again.');
+    final email = _emailCtl.text.trim();
+    final password = _passwordCtl.text;
+
+    try {
+      bool ok = false;
+      try {
+        ok = await _authController.signup(
+          nom: _nameCtl.text.trim(),
+          email: email,
+          password: password,
+          mainRole: _selectedRole,
+          extra: {'nom': _nameCtl.text.trim()},
+        );
+      } catch (signupErr) {
+        debugPrint('[Signup] Notice on signup: $signupErr');
+      }
+
+      final logged = await AuthSession.instance.state.signIn(email, password);
+
+      if (!logged) {
+        if (!ok) {
+          setState(() => _error = 'Account already exists. Please sign in with your password.');
+        } else {
+          setState(() => _error = 'Account created, please sign in.');
+        }
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
         return;
       }
 
       await AppSession.instance.session.loadFromStorage();
-      await AppSession.instance.session.refreshFromServer();
-
-      final logged = await AuthSession.instance.state.signIn(
-        _emailCtl.text.trim(),
-        _passwordCtl.text,
-      );
+      try {
+        await AppSession.instance.session.refreshFromServer();
+      } catch (_) {}
 
       if (!mounted) return;
-      if (logged) {
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
+      try {
+        final logged = await AuthSession.instance.state.signIn(email, password);
+        if (logged) {
+          await AppSession.instance.session.loadFromStorage();
+          try {
+            await AppSession.instance.session.refreshFromServer();
+          } catch (_) {}
+          if (!mounted) return;
+          Navigator.pushReplacementNamed(context, '/home');
+          return;
+        }
+      } catch (_) {}
       setState(() => _error = 'Signup error: $e');
     } finally {
       if (mounted) setState(() => _loading = false);

@@ -627,6 +627,8 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
   }
 
   Widget _featuredModuleCard(BuildContext context, AdminModuleSpec module) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: 228,
       padding: const EdgeInsets.all(16),
@@ -634,13 +636,13 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
         borderRadius: BorderRadius.circular(22),
         gradient: LinearGradient(
           colors: [
-            module.color.withValues(alpha: 0.18),
-            Colors.white.withValues(alpha: 0.96),
+            module.color.withValues(alpha: isDark ? 0.28 : 0.16),
+            isDark ? cs.surfaceContainerHighest.withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.96),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(color: module.color.withValues(alpha: 0.16)),
+        border: Border.all(color: module.color.withValues(alpha: isDark ? 0.35 : 0.22)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -649,7 +651,7 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: module.color.withValues(alpha: 0.14),
+              color: module.color.withValues(alpha: isDark ? 0.25 : 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(module.icon, color: module.color),
@@ -659,7 +661,11 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
             module.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+              color: cs.onSurface,
+            ),
           ),
           const SizedBox(height: 6),
           Text(
@@ -667,7 +673,7 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
               fontWeight: FontWeight.w600,
               height: 1.3,
             ),
@@ -699,15 +705,17 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
   }
 
   Widget _moduleCard(BuildContext context, AdminModuleSpec module) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark ? cs.surfaceContainerHighest.withValues(alpha: 0.85) : cs.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: module.color.withValues(alpha: 0.14)),
+        border: Border.all(color: module.color.withValues(alpha: isDark ? 0.35 : 0.20)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.05),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -722,7 +730,7 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: module.color.withValues(alpha: 0.14),
+                  color: module.color.withValues(alpha: isDark ? 0.25 : 0.14),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(module.icon, color: module.color, size: 20),
@@ -743,7 +751,11 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
             module.title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 15,
+              color: cs.onSurface,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -751,7 +763,7 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
               fontWeight: FontWeight.w600,
               height: 1.3,
             ),
@@ -762,7 +774,7 @@ class _AdminPortalScreenState extends State<AdminPortalScreen> {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
               fontWeight: FontWeight.w700,
               fontSize: 11.5,
             ),

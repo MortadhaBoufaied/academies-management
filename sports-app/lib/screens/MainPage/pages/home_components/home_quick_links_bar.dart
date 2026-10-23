@@ -51,7 +51,7 @@ extension HomeQuickLinksBar on _RoleHomeDashboardState {
           _HomeQuickLink(
             icon: Icons.person_rounded,
             label: 'Profile',
-            color: cs.primary,
+            color: isDark ? Colors.cyanAccent.shade200 : const Color(0xFF0D9488),
             route: '/profile',
           ),
           _HomeQuickLink(
@@ -79,7 +79,7 @@ extension HomeQuickLinksBar on _RoleHomeDashboardState {
           _HomeQuickLink(
             icon: Icons.person_rounded,
             label: 'Profile',
-            color: cs.primary,
+            color: isDark ? Colors.cyanAccent.shade200 : const Color(0xFF0D9488),
             route: '/profile',
           ),
           _HomeQuickLink(
@@ -106,7 +106,7 @@ extension HomeQuickLinksBar on _RoleHomeDashboardState {
           _HomeQuickLink(
             icon: Icons.person_rounded,
             label: 'Profile',
-            color: cs.primary,
+            color: isDark ? Colors.cyanAccent.shade200 : const Color(0xFF0D9488),
             route: '/profile',
           ),
           _HomeQuickLink(
@@ -133,7 +133,7 @@ extension HomeQuickLinksBar on _RoleHomeDashboardState {
           _HomeQuickLink(
             icon: Icons.person_rounded,
             label: 'Profile',
-            color: cs.primary,
+            color: isDark ? Colors.cyanAccent.shade200 : const Color(0xFF0D9488),
             route: '/profile',
           ),
           _HomeQuickLink(
@@ -161,7 +161,7 @@ extension HomeQuickLinksBar on _RoleHomeDashboardState {
           _HomeQuickLink(
             icon: Icons.person_rounded,
             label: 'Profile',
-            color: cs.primary,
+            color: isDark ? Colors.cyanAccent.shade200 : const Color(0xFF0D9488),
             route: '/profile',
           ),
           _HomeQuickLink(
@@ -226,7 +226,8 @@ extension HomeQuickLinksBar on _RoleHomeDashboardState {
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: cs.onSurface.withOpacity(0.82),
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w800,
                       fontWeight: FontWeight.w900,
                       fontSize: 11.5,
                     ),
